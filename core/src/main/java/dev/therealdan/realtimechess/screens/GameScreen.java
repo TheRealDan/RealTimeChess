@@ -1,0 +1,116 @@
+package dev.therealdan.realtimechess.screens;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import dev.therealdan.realtimechess.game.GameInstance;
+import dev.therealdan.realtimechess.main.RealTimeChessApp;
+
+public class GameScreen implements Screen, InputProcessor {
+
+    final RealTimeChessApp app;
+
+    private ScreenViewport viewport;
+    private OrthographicCamera camera;
+
+    private GameInstance instance;
+
+    public GameScreen(RealTimeChessApp app) {
+        this.app = app;
+
+        camera = new OrthographicCamera();
+        viewport = new ScreenViewport(camera);
+
+        instance = new GameInstance();
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(this);
+    }
+
+    @Override
+    public void render(float delta) {
+        ScreenUtils.clear(0, 0.2f, 0.1f, 1);
+
+        camera.update();
+        app.shapeRenderer.setProjectionMatrix(camera.combined);
+        app.batch.setProjectionMatrix(camera.combined);
+
+        instance.render(app);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height);
+        app.font.scale = Gdx.graphics.getWidth() / 1000f;
+    }
+
+    @Override
+    public void pause() {
+        // Invoked when your application is paused.
+    }
+
+    @Override
+    public void resume() {
+        // Invoked when your application is resumed after pause.
+    }
+
+    @Override
+    public void hide() {
+        Gdx.input.setInputProcessor(null);
+    }
+
+    @Override
+    public void dispose() {
+        // Destroy screen's assets here.
+    }
+
+    @Override
+    public boolean keyDown(int i) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int i) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char c) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int i, int i1, int i2, int i3) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int i, int i1, int i2, int i3) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int i, int i1, int i2) {
+        return false;
+    }
+
+    @Override
+    public boolean touchCancelled(int i, int i1, int i2, int i3) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int i, int i1) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float v, float v1) {
+        return false;
+    }
+}

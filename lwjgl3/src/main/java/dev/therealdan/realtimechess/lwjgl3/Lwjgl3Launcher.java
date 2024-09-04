@@ -2,7 +2,7 @@ package dev.therealdan.realtimechess.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import dev.therealdan.realtimechess.RealTimeChessApp;
+import dev.therealdan.realtimechess.main.RealTimeChessApp;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
