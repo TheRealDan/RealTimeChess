@@ -118,6 +118,8 @@ public class Board {
 
     public List<Position> getPossibleMoves(Piece piece) {
         List<Position> moves = new ArrayList<>();
+        if (piece == null) return moves;
+
         Position position = piece.getPosition();
         boolean black = piece.getColour().equals(Piece.Colour.BLACK);
         switch (piece.getType()) {
