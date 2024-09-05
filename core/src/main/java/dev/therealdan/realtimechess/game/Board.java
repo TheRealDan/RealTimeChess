@@ -13,14 +13,15 @@ import java.util.List;
 
 public class Board {
 
-    private Texture black = new Texture("images/wood_black.png");
-    private Texture white = new Texture("images/wood_white.png");
+    private static Texture black = new Texture("images/wood_black.png");
+    private static Texture white = new Texture("images/wood_white.png");
 
     private List<Piece> pieces = new ArrayList<>();
 
     private Position hovering = null;
     private Piece selected = null;
     private boolean holding = false;
+    private boolean simulation = false;
 
     public void render(RealTimeChessApp app, float ox, float oy, float width, float height) {
         app.batch.begin();
@@ -86,6 +87,15 @@ public class Board {
 
         if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return null;
 
+        if (!simulation) {
+            Board simulation = copy();
+            simulation.simulation = true;
+            Piece pieceSim = simulation.byPosition(piece.getPosition());
+            simulation.getPieces().remove(simulation.byPosition(position));
+            pieceSim.getPosition().set(position);
+            if (simulation.isChecked(piece.getColour())) return null;
+        }
+
         piece.getPosition().set(position);
         if (captured != null)
             getPieces().remove(captured);
@@ -114,6 +124,37 @@ public class Board {
 
     public boolean isHolding() {
         return holding;
+    }
+
+    public boolean isChecked(Piece.Colour colour) {
+        Piece king = getPieces().stream().filter(piece -> piece.getType().equals(Piece.Type.KING) && piece.getColour().equals(colour)).findFirst().get();
+        if (king == null) return false;
+        for (Piece opponent : getPieces()) {
+            if (opponent.getColour().equals(colour)) continue;
+            for (Position opponentMove : getPossibleMoves(opponent))
+                if (king.getPosition().equals(opponentMove))
+                    return true;
+        }
+        return false;
+    }
+
+    public boolean isStalemate(Piece.Colour colour) {
+        for (Piece piece : getPieces()) {
+            if (!piece.getColour().equals(colour)) continue;
+            if (!getPossibleMoves(piece).isEmpty())
+                return false;
+        }
+        return !isChecked(colour);
+    }
+
+    public boolean isCheckmate(Piece.Colour colour) {
+        if (!isChecked(colour)) return false;
+        for (Piece piece : getPieces()) {
+            if (!piece.getColour().equals(colour)) continue;
+            if (!getPossibleMoves(piece).isEmpty())
+                return false;
+        }
+        return true;
     }
 
     public List<Position> getPossibleMoves(Piece piece) {
@@ -188,9 +229,22 @@ public class Board {
 
         for (Position move : new ArrayList<>(moves)) {
             Piece current = byPosition(move);
-            if (current != null && current.getColour().equals(piece.getColour()))
+            if (current != null && current.getColour().equals(piece.getColour())) {
                 moves.remove(move);
+                continue;
+            }
+
+            if (!simulation) {
+                Board simulation = copy();
+                simulation.simulation = true;
+                Piece pieceSim = simulation.byPosition(piece.getPosition());
+                simulation.getPieces().remove(simulation.byPosition(move));
+                pieceSim.getPosition().set(move);
+                if (simulation.isChecked(piece.getColour()))
+                    moves.remove(move);
+            }
         }
+
         return moves;
     }
 
@@ -203,6 +257,13 @@ public class Board {
 
     public List<Piece> getPieces() {
         return pieces;
+    }
+
+    public Board copy() {
+        Board board = new Board();
+        for (Piece piece : getPieces())
+            board.pieces.add(piece.copy());
+        return board;
     }
 
     public static Board standardBoard() {

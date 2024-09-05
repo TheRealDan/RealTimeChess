@@ -52,6 +52,10 @@ public class Piece {
         return position;
     }
 
+    public Piece copy() {
+        return new Piece(type, colour, position.copy());
+    }
+
     public enum Type {
         PAWN, ROOK, KNIGHT, BISHOP, KING, QUEEN;
 
