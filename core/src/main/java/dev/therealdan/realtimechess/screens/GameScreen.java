@@ -71,6 +71,11 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int i) {
+        switch (i) {
+            case 111:
+                instance = new GameInstance();
+                break;
+        }
         return false;
     }
 
