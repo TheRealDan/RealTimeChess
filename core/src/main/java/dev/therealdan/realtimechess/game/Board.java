@@ -45,7 +45,7 @@ public class Board {
                     if (position.getNumber() == 1) app.font.center(app.batch, position.getLetter(), x + cell - spacing, y + spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
                     if (position.getLetter().equals("a")) app.font.center(app.batch, position.getNumber() + "", x + spacing, y + cell - spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
                 }
-                if (isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(position))) {
+                if (piece == null && isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(position))) {
                     app.batch.end();
                     app.shapeRenderer.setAutoShapeType(true);
                     app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -55,7 +55,7 @@ public class Board {
                     app.batch.begin();
                 }
                 if (piece != null && (!piece.equals(getSelected()) || !isHolding()))
-                    piece.render(app, x, y, cell);
+                    piece.render(app, x, y, cell, isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(piece.getPosition())) ? Color.FIREBRICK : piece.getColour().getColor());
 
                 colour = colour.opposite();
                 x += cell;

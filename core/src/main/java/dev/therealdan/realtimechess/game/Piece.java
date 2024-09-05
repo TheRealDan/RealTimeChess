@@ -23,9 +23,13 @@ public class Piece {
     }
 
     public void render(RealTimeChessApp app, float x, float y, float cell) {
+        render(app, x, y, cell, getColour().getColor());
+    }
+
+    public void render(RealTimeChessApp app, float x, float y, float cell, Color color) {
         float spacing = cell * 0.1f;
         float width = cell - spacing * 2f, height = width;
-        app.batch.setColor(getColour().getColor());
+        app.batch.setColor(color);
         app.batch.draw(getType().getTexture(), x + spacing, y + spacing, width, height);
 
         if (Gdx.input.isKeyPressed(Input.Keys.TAB))
