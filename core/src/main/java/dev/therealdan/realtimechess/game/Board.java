@@ -45,19 +45,12 @@ public class Board {
                     if (position.getNumber() == 1) app.font.center(app.batch, position.getLetter(), x + cell - spacing, y + spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
                     if (position.getLetter().equals("a")) app.font.center(app.batch, position.getNumber() + "", x + spacing, y + cell - spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
                 }
-                if (getHovering() != null && getHovering().equals(position)) {
-                    app.batch.end();
-                    app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                    app.shapeRenderer.setColor(Color.YELLOW);
-                    app.shapeRenderer.rect(x, y, cell, cell);
-                    app.shapeRenderer.end();
-                    app.batch.begin();
-                }
                 if (isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(position))) {
                     app.batch.end();
+                    app.shapeRenderer.setAutoShapeType(true);
                     app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                    app.shapeRenderer.setColor(Color.GREEN);
-                    app.shapeRenderer.rect(x, y, cell, cell);
+                    app.shapeRenderer.setColor(Color.WHITE);
+                    app.shapeRenderer.circle(x + cell / 2f, y + cell / 2f, cell / 8f, 64);
                     app.shapeRenderer.end();
                     app.batch.begin();
                 }
