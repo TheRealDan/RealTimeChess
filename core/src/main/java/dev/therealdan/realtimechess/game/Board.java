@@ -10,6 +10,7 @@ import dev.therealdan.realtimechess.main.RealTimeChessApp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Board {
 
@@ -127,7 +128,10 @@ public class Board {
     }
 
     public boolean isChecked(Piece.Colour colour) {
-        Piece king = getPieces().stream().filter(piece -> piece.getType().equals(Piece.Type.KING) && piece.getColour().equals(colour)).findFirst().get();
+        Optional<Piece> optionalKing = getPieces().stream().filter(piece -> piece.getType().equals(Piece.Type.KING) && piece.getColour().equals(colour)).findFirst();
+        if (optionalKing.isEmpty()) return false;
+        Piece king = optionalKing.get();
+
         if (king == null) return false;
         for (Piece opponent : getPieces()) {
             if (opponent.getColour().equals(colour)) continue;
