@@ -1,5 +1,8 @@
 package dev.therealdan.realtimechess.game;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Position {
 
     public static String letters = "abcdefgh";
@@ -15,6 +18,30 @@ public class Position {
     public Position(int x, int y) {
         setX(x);
         setY(y);
+    }
+
+    public Position move(int x, int y) {
+        setX(getX() + x);
+        setY(getY() + y);
+        return this;
+    }
+
+    public Position moveDiagonally(int x, int y) {
+        if (x == 0 || y == 0) return this;
+        if (Math.abs(x) != Math.abs(y)) return this;
+        if (getX() + x > 8 || getX() + x < 1) return this;
+        if (getY() + y > 8 || getY() + y < 1) return this;
+        setX(getX() + x);
+        setY(getY() + y);
+        return this;
+    }
+
+    public Position moveKnightly(int x, int y) {
+        if (getX() + x > 8 || getX() + x < 1) return this;
+        if (getY() + y > 8 || getY() + y < 1) return this;
+        setX(getX() + x);
+        setY(getY() + y);
+        return this;
     }
 
     public void set(Position position) {
@@ -40,13 +67,15 @@ public class Position {
         return number;
     }
 
-    public void setX(int x) {
-        if (x < 1 || x > 8) return;
+    public Position setX(int x) {
+        if (x < 1 || x > 8) return this;
         setLetter(letters.substring(x - 1, x));
+        return this;
     }
 
-    public void setY(int y) {
+    public Position setY(int y) {
         setNumber(y);
+        return this;
     }
 
     public int getX() {
@@ -57,11 +86,28 @@ public class Position {
         return getNumber();
     }
 
+    public List<Position> getKnightPositions() {
+        List<Position> positions = new ArrayList<>();
+        positions.add(copy().moveKnightly(2, 1));
+        positions.add(copy().moveKnightly(2, -1));
+        positions.add(copy().moveKnightly(-2, 1));
+        positions.add(copy().moveKnightly(-2, -1));
+        positions.add(copy().moveKnightly(1, 2));
+        positions.add(copy().moveKnightly(-1, 2));
+        positions.add(copy().moveKnightly(1, -2));
+        positions.add(copy().moveKnightly(-1, -2));
+        return positions;
+    }
+
     public String getNotation() {
         return getLetter() + getNumber();
     }
 
     public boolean equals(Position position) {
         return getLetter().equals(position.getLetter()) && getNumber() == position.getNumber();
+    }
+
+    public Position copy() {
+        return new Position(letter, number);
     }
 }

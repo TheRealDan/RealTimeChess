@@ -51,6 +51,14 @@ public class Board {
                     app.shapeRenderer.end();
                     app.batch.begin();
                 }
+                if (isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(position))) {
+                    app.batch.end();
+                    app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                    app.shapeRenderer.setColor(Color.GREEN);
+                    app.shapeRenderer.rect(x, y, cell, cell);
+                    app.shapeRenderer.end();
+                    app.batch.begin();
+                }
                 if (piece != null && (!piece.equals(getSelected()) || !isHolding()))
                     piece.render(app, x, y, cell);
 
@@ -61,7 +69,7 @@ public class Board {
             x = ox;
             colour = colour.opposite();
         }
-        if (isHolding())
+        if (isHolding() && getSelected() != null)
             getSelected().render(app, Mouse.getX() - cell / 2f, Mouse.getY() - cell / 2f, cell);
         app.batch.end();
     }
@@ -69,7 +77,14 @@ public class Board {
     public Piece moveTo(Piece piece, Position position) {
         if (piece == null || position == null) return null;
         Piece captured = byPosition(position);
-        if (captured != null && captured.getColor().equals(piece.getColor())) return null;
+        if (captured != null && captured.getColour().equals(piece.getColour())) return null;
+
+        System.out.println(piece.getType().getNotation() + piece.getPosition().getNotation() + " -> " + position.getNotation());
+        for (Position each : getPossibleMoves(piece)) {
+            System.out.println(" - " + each.getNotation());
+        }
+
+        if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return null;
 
         piece.getPosition().set(position);
         if (captured != null)
@@ -99,6 +114,82 @@ public class Board {
 
     public boolean isHolding() {
         return holding;
+    }
+
+    public List<Position> getPossibleMoves(Piece piece) {
+        List<Position> moves = new ArrayList<>();
+        Position position = piece.getPosition();
+        boolean black = piece.getColour().equals(Piece.Colour.BLACK);
+        switch (piece.getType()) {
+            case PAWN:
+                Piece current = byPosition(position.copy().move(0, black ? -1 : 1));
+                if (current == null) {
+                    moves.add(position.copy().move(0, black ? -1 : 1));
+                    if (piece.isStartPosition()) moves.add(position.copy().move(0, black ? -2 : 2));
+                }
+                Piece captureRight = byPosition(position.copy().moveDiagonally(1, black ? -1 : 1));
+                if (captureRight != null && !captureRight.getColour().equals(piece.getColour())) moves.add(captureRight.getPosition());
+                Piece captureLeft = byPosition(position.copy().moveDiagonally(-1, black ? -1 : 1));
+                if (captureLeft != null && !captureLeft.getColour().equals(piece.getColour())) moves.add(captureLeft.getPosition());
+                break;
+            case QUEEN:
+            case ROOK:
+                for (int x = piece.getPosition().getX() + 1; x <= 8; x++) {
+                    moves.add(position.copy().setX(x));
+                    if (byPosition(position.copy().setX(x)) != null) break;
+                }
+                for (int x = piece.getPosition().getX() - 1; x >= 1; x--) {
+                    moves.add(position.copy().setX(x));
+                    if (byPosition(position.copy().setX(x)) != null) break;
+                }
+                for (int y = piece.getPosition().getY() + 1; y <= 8; y++) {
+                    moves.add(position.copy().setY(y));
+                    if (byPosition(position.copy().setY(y)) != null) break;
+                }
+                for (int y = piece.getPosition().getY() - 1; y >= 1; y--) {
+                    moves.add(position.copy().setY(y));
+                    if (byPosition(position.copy().setY(y)) != null) break;
+                }
+                if (piece.getType().equals(Piece.Type.ROOK)) break;
+            case BISHOP:
+                for (int m = 1; m <= 7; m++) {
+                    moves.add(position.copy().moveDiagonally(m, m));
+                    if (byPosition(position.copy().moveDiagonally(m, m)) != null) break;
+                }
+                for (int m = 1; m <= 7; m++) {
+                    moves.add(position.copy().moveDiagonally(-m, -m));
+                    if (byPosition(position.copy().moveDiagonally(-m, -m)) != null) break;
+                }
+                for (int m = 1; m <= 7; m++) {
+                    moves.add(position.copy().moveDiagonally(m, -m));
+                    if (byPosition(position.copy().moveDiagonally(m, -m)) != null) break;
+                }
+                for (int m = 1; m <= 7; m++) {
+                    moves.add(position.copy().moveDiagonally(-m, m));
+                    if (byPosition(position.copy().moveDiagonally(-m, m)) != null) break;
+                }
+                break;
+            case KNIGHT:
+                for (Position move : piece.getPosition().getKnightPositions()) {
+                    Piece moveTo = byPosition(move);
+                    if (moveTo != null && moveTo.getColour().equals(piece.getColour())) continue;
+                    moves.add(move);
+                }
+                break;
+            case KING:
+                for (int x = -1; x <= 1; x++)
+                    for (int y = -1; y <= 1; y++)
+                        if (x != 0 || y != 0)
+                            moves.add(position.copy().move(x, y));
+                break;
+        }
+
+        for (Position move : new ArrayList<>(moves)) {
+            Piece current = byPosition(move);
+            if (current != null && current.getColour().equals(piece.getColour()))
+                moves.remove(move);
+        }
+        return moves;
     }
 
     public Piece byPosition(Position position) {

@@ -25,18 +25,26 @@ public class Piece {
     public void render(RealTimeChessApp app, float x, float y, float cell) {
         float spacing = cell * 0.1f;
         float width = cell - spacing * 2f, height = width;
-        app.batch.setColor(getColor().getColor());
+        app.batch.setColor(getColour().getColor());
         app.batch.draw(getType().getTexture(), x + spacing, y + spacing, width, height);
 
         if (Gdx.input.isKeyPressed(Input.Keys.TAB))
             app.font.center(app.batch, getPosition().getNotation(), x + cell / 2f, y + spacing * 3f, (int) (10f * app.font.scale), getColour().opposite().getColor());
     }
 
+    public boolean isStartPosition() {
+        switch (getType()) {
+            case PAWN:
+                return getPosition().getNumber() == (getColour().equals(Colour.BLACK) ? 7 : 2);
+        }
+        return false;
+    }
+
     public Type getType() {
         return type;
     }
 
-    public Colour getColor() {
+    public Colour getColour() {
         return colour;
     }
 
