@@ -3,30 +3,29 @@ package dev.therealdan.realtimechess.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Bot;
-import dev.therealdan.realtimechess.game.GameInstance;
-import dev.therealdan.realtimechess.game.Piece;
+import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
 
-public class GameScreen implements Screen, InputProcessor {
+public class MainMenuScreen implements Screen, InputProcessor {
 
     final RealTimeChessApp app;
 
     private ScreenViewport viewport;
     private OrthographicCamera camera;
 
-    private GameInstance instance;
+    private Bot.Difficulty difficulty = null;
 
-    public GameScreen(RealTimeChessApp app, Bot.Difficulty difficulty) {
+    public MainMenuScreen(RealTimeChessApp app) {
         this.app = app;
 
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
-
-        instance = new GameInstance(difficulty);
     }
 
     @Override
@@ -42,7 +41,33 @@ public class GameScreen implements Screen, InputProcessor {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
-        instance.render(app);
+        app.batch.begin();
+        app.font.center(app.batch, "Real Time Chess", 0, Gdx.graphics.getHeight() / 2f - Gdx.graphics.getHeight() * 0.1f, (int) (40f * app.font.scale), Color.WHITE);
+        app.batch.end();
+
+        float spacing = Gdx.graphics.getHeight() / 25f;
+        float width = Gdx.graphics.getWidth() * 0.4f;
+        float height = ((Gdx.graphics.getHeight() * 0.8f - spacing * Bot.Difficulty.values().length) / Bot.Difficulty.values().length) - spacing;
+        float x = -width / 2f;
+        float y = Gdx.graphics.getHeight() * 0.3f - height - spacing;
+
+        this.difficulty = null;
+        for (Bot.Difficulty difficulty : Bot.Difficulty.values()) {
+            boolean hovering = Mouse.containsMouse(x, y, width, height);
+            if (hovering)
+                this.difficulty = difficulty;
+
+            app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            app.shapeRenderer.setColor(hovering ? Color.BROWN : Color.FIREBRICK);
+            app.shapeRenderer.rect(x, y, width, height);
+            app.shapeRenderer.end();
+
+            app.batch.begin();
+            app.font.center(app.batch, difficulty.toString(), x + width / 2f, y + height * 0.6f, (int) (16f * app.font.scale), Color.WHITE);
+            app.batch.end();
+
+            y -= height + spacing;
+        }
     }
 
     @Override
@@ -53,12 +78,12 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void pause() {
-        // Invoked when your application is paused.
+
     }
 
     @Override
     public void resume() {
-        // Invoked when your application is resumed after pause.
+
     }
 
     @Override
@@ -68,16 +93,11 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void dispose() {
-        // Destroy screen's assets here.
+
     }
 
     @Override
     public boolean keyDown(int i) {
-        switch (i) {
-            case 111:
-                app.setScreen(new MainMenuScreen(app));
-                break;
-        }
         return false;
     }
 
@@ -93,31 +113,24 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
-        if (instance.getBoard().getHovering() != null) {
-            Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
-            if (piece != null && piece.getColour().equals(Piece.Colour.WHITE)) {
-                instance.getBoard().select(piece);
-                instance.getBoard().setHolding(true);
-            }
+        if (difficulty != null) {
+            app.setScreen(new GameScreen(app, difficulty));
         }
         return false;
     }
 
     @Override
     public boolean touchUp(int i, int i1, int i2, int i3) {
-        if (instance.getBoard().isHolding())
-            instance.getBoard().moveTo(instance.getBoard().getSelected(), instance.getBoard().getHovering());
-        instance.getBoard().setHolding(false);
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int i, int i1, int i2) {
         return false;
     }
 
     @Override
     public boolean touchCancelled(int i, int i1, int i2, int i3) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int i, int i1, int i2) {
         return false;
     }
 

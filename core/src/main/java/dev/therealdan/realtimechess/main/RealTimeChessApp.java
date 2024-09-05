@@ -3,7 +3,7 @@ package dev.therealdan.realtimechess.main;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import dev.therealdan.realtimechess.screens.GameScreen;
+import dev.therealdan.realtimechess.screens.MainMenuScreen;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms.
@@ -22,7 +22,7 @@ public class RealTimeChessApp extends Game {
         shapeRenderer = new ShapeRenderer();
         batch = new SpriteBatch();
 
-        setScreen(new GameScreen(this));
+        setScreen(new MainMenuScreen(this));
     }
 
     @Override
