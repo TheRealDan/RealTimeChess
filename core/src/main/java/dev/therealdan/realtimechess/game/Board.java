@@ -1,5 +1,7 @@
 package dev.therealdan.realtimechess.game;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -36,6 +38,11 @@ public class Board {
 
                 app.batch.setColor(Color.WHITE);
                 app.batch.draw(colour.equals(Piece.Colour.BLACK) ? black : white, x, y, cell, cell);
+                if (Gdx.input.isKeyPressed(Input.Keys.TAB)) {
+                    float spacing = cell * 0.1f;
+                    if (position.getNumber() == 1) app.font.center(app.batch, position.getLetter(), x + cell - spacing, y + spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
+                    if (position.getLetter().equals("a")) app.font.center(app.batch, position.getNumber() + "", x + spacing, y + cell - spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
+                }
                 if (getHovering() != null && getHovering().equals(position)) {
                     app.batch.end();
                     app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);

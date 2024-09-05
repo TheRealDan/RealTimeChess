@@ -1,5 +1,7 @@
 package dev.therealdan.realtimechess.game;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
@@ -25,6 +27,9 @@ public class Piece {
         float width = cell - spacing * 2f, height = width;
         app.batch.setColor(getColor().getColor());
         app.batch.draw(getType().getTexture(), x + spacing, y + spacing, width, height);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.TAB))
+            app.font.center(app.batch, getPosition().getNotation(), x + cell / 2f, y + spacing * 3f, (int) (10f * app.font.scale), getColour().opposite().getColor());
     }
 
     public Type getType() {
