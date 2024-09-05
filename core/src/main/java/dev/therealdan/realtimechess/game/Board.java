@@ -81,11 +81,6 @@ public class Board {
         Piece captured = byPosition(position);
         if (captured != null && captured.getColour().equals(piece.getColour())) return null;
 
-        System.out.println(piece.getType().getNotation() + piece.getPosition().getNotation() + " -> " + position.getNotation());
-        for (Position each : getPossibleMoves(piece)) {
-            System.out.println(" - " + each.getNotation());
-        }
-
         if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return null;
 
         if (!simulation) {
