@@ -12,6 +12,11 @@ import dev.therealdan.realtimechess.game.Bot;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class MainMenuScreen implements Screen, InputProcessor {
 
     final RealTimeChessApp app;
@@ -19,6 +24,8 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private ScreenViewport viewport;
     private OrthographicCamera camera;
 
+    private Option option = null;
+    private Option menu = null;
     private Bot.Difficulty difficulty = null;
 
     public MainMenuScreen(RealTimeChessApp app) {
@@ -51,11 +58,18 @@ public class MainMenuScreen implements Screen, InputProcessor {
         float x = -width / 2f;
         float y = Gdx.graphics.getHeight() * 0.3f - height - spacing;
 
+        List<String> options = new ArrayList<>();
+        if (menu == null) options.addAll(Arrays.stream(Option.values()).map(option -> option.toString()).collect(Collectors.toList()));
+        if (menu == Option.BOTS) options.addAll(Arrays.stream(Bot.Difficulty.values()).map(difficulty -> difficulty.toString()).collect(Collectors.toList()));
+
+        this.option = null;
         this.difficulty = null;
-        for (Bot.Difficulty difficulty : Bot.Difficulty.values()) {
+        for (String button : options) {
             boolean hovering = Mouse.containsMouse(x, y, width, height);
-            if (hovering)
-                this.difficulty = difficulty;
+            if (hovering) {
+                this.option = Arrays.stream(Option.values()).anyMatch(option -> option.toString().equals(button)) ? Option.valueOf(button) : null;
+                this.difficulty = Arrays.stream(Bot.Difficulty.values()).anyMatch(difficulty -> difficulty.toString().equals(button)) ? Bot.Difficulty.valueOf(button) : null;
+            }
 
             app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             app.shapeRenderer.setColor(hovering ? Color.BROWN : Color.FIREBRICK);
@@ -63,7 +77,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
             app.shapeRenderer.end();
 
             app.batch.begin();
-            app.font.center(app.batch, difficulty.toString(), x + width / 2f, y + height * 0.6f, (int) (16f * app.font.scale), Color.WHITE);
+            app.font.center(app.batch, button, x + width / 2f, y + height * 0.6f, (int) (16f * app.font.scale), Color.WHITE);
             app.batch.end();
 
             y -= height + spacing;
@@ -98,6 +112,13 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int i) {
+        switch (i) {
+            case 111:
+                option = null;
+                menu = null;
+                difficulty = null;
+                break;
+        }
         return false;
     }
 
@@ -113,6 +134,16 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        if (option != null) {
+            switch (option) {
+                default:
+                    menu = option;
+                    return false;
+                case QUIT:
+                    Gdx.app.exit();
+                    return false;
+            }
+        }
         if (difficulty != null) {
             app.setScreen(new GameScreen(app, difficulty));
         }
@@ -142,5 +173,9 @@ public class MainMenuScreen implements Screen, InputProcessor {
     @Override
     public boolean scrolled(float v, float v1) {
         return false;
+    }
+
+    public enum Option {
+        BOTS, QUIT
     }
 }
