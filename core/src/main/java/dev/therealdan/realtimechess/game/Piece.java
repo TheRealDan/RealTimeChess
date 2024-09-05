@@ -23,9 +23,8 @@ public class Piece {
     public void render(RealTimeChessApp app, float x, float y, float cell) {
         float spacing = cell * 0.1f;
         float width = cell - spacing * 2f, height = width;
-
         app.batch.setColor(getColor().getColor());
-        app.batch.draw(getType().getTexture(), x - cell + spacing, y + spacing, width, height);
+        app.batch.draw(getType().getTexture(), x + spacing, y + spacing, width, height);
     }
 
     public Type getType() {

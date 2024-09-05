@@ -17,6 +17,11 @@ public class Position {
         setY(y);
     }
 
+    public void set(Position position) {
+        setLetter(position.getLetter());
+        setNumber(position.getNumber());
+    }
+
     public void setLetter(String letter) {
         if (!letters.contains(letter)) return;
         this.letter = letter;

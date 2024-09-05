@@ -86,11 +86,18 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        if (instance.getBoard().getHovering() != null) {
+            instance.getBoard().select(instance.getBoard().byPosition(instance.getBoard().getHovering()));
+            instance.getBoard().setHolding(true);
+        }
         return false;
     }
 
     @Override
     public boolean touchUp(int i, int i1, int i2, int i3) {
+        if (instance.getBoard().isHolding())
+            instance.getBoard().moveTo(instance.getBoard().getSelected(), instance.getBoard().getHovering());
+        instance.getBoard().setHolding(false);
         return false;
     }
 
