@@ -32,10 +32,16 @@ public class FontManager implements Disposable {
         font.draw(batch, text, x, y);
     }
 
+    public void draw(SpriteBatch batch, String text, float x, float y, float width, int fontSize, Color color) {
+        BitmapFont font = getFont(fontSize);
+        font.setColor(color);
+        font.draw(batch, text, x, y, width, Align.left, true);
+    }
+
     public void center(SpriteBatch batch, String text, float x, float y, int fontSize, Color color) {
         BitmapFont font = getFont(fontSize);
         font.setColor(color);
-        font.draw(batch, text, x, y, 0, Align.center, false);
+        font.draw(batch, text, x, y + font.getCapHeight()/2f, 0, Align.center, false);
     }
 
     @Override

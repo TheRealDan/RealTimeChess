@@ -1,12 +1,13 @@
 package dev.therealdan.realtimechess.game;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import com.badlogic.gdx.graphics.Texture;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bot {
+
+    private static HashMap<Difficulty, Texture> textures = new HashMap<>();
 
     private Random random = new Random();
 
@@ -23,8 +24,12 @@ public class Bot {
     public void think(Board board) {
         switch (getDifficulty()) {
             case LEMONS:
-                if (getTimeSinceLastMove() < 3000) return;
+                if (getTimeSinceLastMove() < 5000) return;
                 doAnyMove(board);
+                break;
+            case SLOW:
+                if (getTimeSinceLastMove() < 4000) return;
+                doSmartMove(board);
                 break;
             case CAUTIOUS:
                 if (getTimeSinceLastMove() < 2000) return;
@@ -101,6 +106,41 @@ public class Bot {
     }
 
     public enum Difficulty {
-        LEMONS, CAUTIOUS, TACTFUL, RECKLESS, IMPOSSIBLE
+        BRAINLESS, LEMONS, SLOW, CAUTIOUS, TACTFUL, RECKLESS, IMPOSSIBLE;
+
+        public Texture getTexture() {
+            if (!textures.containsKey(this)) {
+                try {
+                    textures.put(this, new Texture("images/bots/" + toString().toLowerCase() + ".png"));
+                } catch (Exception e) {
+                    textures.put(this, new Texture("images/bots/unknown.png"));
+                }
+            }
+            return textures.get(this);
+        }
+
+        public String getName() {
+            return toString().substring(0, 1) + toString().substring(1).toLowerCase();
+        }
+
+        public String getDifficulty() {
+            switch (this) {
+                default:
+                    return "";
+                case BRAINLESS:
+                    return "(very easy)";
+                case LEMONS:
+                    return "(easy)";
+            }
+        }
+
+        public String getDescription() {
+            switch (this) {
+                default:
+                    return "No one actually knows anything about this particular bot.";
+                case BRAINLESS:
+                    return "Unlike other advanced bots, brainless has no brains, meaning it does not posses any intelligence or ability to make decisions. It serves as a great learning tool for beginners to real time chess as it will never actually move any chess pieces. Literally brainless.";
+            }
+        }
     }
 }

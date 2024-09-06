@@ -5,6 +5,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -24,7 +25,11 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private ScreenViewport viewport;
     private OrthographicCamera camera;
 
-    private Option option = null;
+    private Texture black;
+    private Texture firebrick;
+    private Texture brown;
+
+    private Option hovering = null;
     private Option menu = null;
     private Bot.Difficulty difficulty = null;
 
@@ -33,6 +38,10 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
+
+        black = new Texture("images/black.png");
+        firebrick = new Texture("images/firebrick.png");
+        brown = new Texture("images/brown.png");
     }
 
     @Override
@@ -48,40 +57,99 @@ public class MainMenuScreen implements Screen, InputProcessor {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
+        float oheight = Gdx.graphics.getHeight() * 0.8f;
+        float height = Gdx.graphics.getHeight() - oheight;
+        float y = Gdx.graphics.getHeight() / 2f;
+
+        String title = menu != null && menu.equals(Option.BOTS) ? "Choose your opponent" : "Real Time Chess";
+
         app.batch.begin();
-        app.font.center(app.batch, "Real Time Chess", 0, Gdx.graphics.getHeight() / 2f - Gdx.graphics.getHeight() * 0.1f, (int) (40f * app.font.scale), Color.WHITE);
+        app.font.center(app.batch, title, 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
         app.batch.end();
+
+        y -= height;
+
+        if (menu == null) {
+            menu(y, oheight);
+        } else {
+            bots(y, oheight);
+        }
+    }
+
+    private void menu(float oy, float oheight) {
+        List<Option> options = new ArrayList<>();
+        options.add(Option.BOTS);
+        options.add(Option.QUIT);
 
         float spacing = Gdx.graphics.getHeight() / 25f;
         float width = Gdx.graphics.getWidth() * 0.4f;
-        float height = ((Gdx.graphics.getHeight() * 0.8f - spacing * Bot.Difficulty.values().length) / Bot.Difficulty.values().length) - spacing;
+        float height = Math.min(oheight / options.size() - spacing, 80f);
+        float theight = (height + spacing) * options.size();
         float x = -width / 2f;
-        float y = Gdx.graphics.getHeight() * 0.3f - height - spacing;
+        float y = oy - oheight / 2f + theight / 2f - height;
 
-        List<String> options = new ArrayList<>();
-        if (menu == null) options.addAll(Arrays.stream(Option.values()).map(option -> option.toString()).collect(Collectors.toList()));
-        if (menu == Option.BOTS) options.addAll(Arrays.stream(Bot.Difficulty.values()).map(difficulty -> difficulty.toString()).collect(Collectors.toList()));
-
-        this.option = null;
-        this.difficulty = null;
-        for (String button : options) {
-            boolean hovering = Mouse.containsMouse(x, y, width, height);
-            if (hovering) {
-                this.option = Arrays.stream(Option.values()).anyMatch(option -> option.toString().equals(button)) ? Option.valueOf(button) : null;
-                this.difficulty = Arrays.stream(Bot.Difficulty.values()).anyMatch(difficulty -> difficulty.toString().equals(button)) ? Bot.Difficulty.valueOf(button) : null;
-            }
-
+        hovering = null;
+        for (Option option : options) {
+            if (Mouse.containsMouse(x, y, width, height)) hovering = option;
             app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            app.shapeRenderer.setColor(hovering ? Color.BROWN : Color.FIREBRICK);
+            app.shapeRenderer.setColor(Mouse.containsMouse(x, y, width, height) ? Color.BROWN : Color.FIREBRICK);
             app.shapeRenderer.rect(x, y, width, height);
             app.shapeRenderer.end();
 
             app.batch.begin();
-            app.font.center(app.batch, button, x + width / 2f, y + height * 0.6f, (int) (16f * app.font.scale), Color.WHITE);
+            app.font.center(app.batch, option.getName(), x + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
             app.batch.end();
 
             y -= height + spacing;
         }
+    }
+
+    private void bots(float oy, float oheight) {
+        if (difficulty == null) difficulty = Arrays.stream(Bot.Difficulty.values()).findFirst().get();
+        hovering = null;
+
+        float spacing = Gdx.graphics.getHeight() / 25f;
+        float height = oheight * 0.8f;
+        float width = Math.min((Gdx.graphics.getWidth() - spacing * 3f) / 2f, height);
+        height = width;
+
+        float buttonWidth = width * 0.4f;
+        float buttonHeight = Math.min(buttonWidth / 2f, 80f);
+
+        float x = -spacing / 2f - width;
+        float y = oy - height;
+
+        app.batch.begin();
+        app.batch.setColor(Color.WHITE);
+        app.batch.draw(difficulty.getTexture(), x, y, width, height);
+        x += width + spacing;
+        app.batch.draw(black, x, y, width, height);
+
+        float ox = x;
+        float buttonX = ox + width / 2f - buttonWidth / 2f;
+        float buttonY = y + spacing;
+        int buttonFontSize = (int) (12f * app.font.scale);
+
+        x += spacing / 2f;
+        y += height - spacing / 2f;
+        app.font.draw(app.batch, difficulty.getName() + " " + difficulty.getDifficulty(), x, y, (int) (20f * app.font.scale), Color.WHITE);
+        y -= spacing * 2f;
+        app.font.draw(app.batch, difficulty.getDescription(), x, y, width - spacing, (int) (12f * app.font.scale), Color.WHITE);
+
+        if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.PLAY;
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.font.center(app.batch, Option.PLAY.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
+        buttonWidth /= 2f;
+        buttonX = ox + spacing;
+        if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.PREVIOUS;
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.font.center(app.batch, Option.PREVIOUS.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
+        buttonX = ox + width - spacing - buttonWidth;
+        if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.NEXT;
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.font.center(app.batch, Option.NEXT.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
+
+        app.batch.end();
     }
 
     @Override
@@ -114,7 +182,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
     public boolean keyDown(int i) {
         switch (i) {
             case 111:
-                option = null;
+                hovering = null;
                 menu = null;
                 difficulty = null;
                 break;
@@ -134,18 +202,24 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
-        if (option != null) {
-            switch (option) {
+        if (hovering != null) {
+            switch (hovering) {
                 default:
-                    menu = option;
+                    menu = hovering;
+                    return false;
+                case PLAY:
+                    app.setScreen(new GameScreen(app, difficulty));
+                    return false;
+                case PREVIOUS:
+                    difficulty = difficulty.equals(Bot.Difficulty.values()[0]) ? Bot.Difficulty.values()[Bot.Difficulty.values().length - 1] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) - 1];
+                    return false;
+                case NEXT:
+                    difficulty = difficulty.equals(Bot.Difficulty.values()[Bot.Difficulty.values().length - 1]) ? Bot.Difficulty.values()[0] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) + 1];
                     return false;
                 case QUIT:
                     Gdx.app.exit();
                     return false;
             }
-        }
-        if (difficulty != null) {
-            app.setScreen(new GameScreen(app, difficulty));
         }
         return false;
     }
@@ -176,6 +250,11 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     public enum Option {
-        BOTS, QUIT
+        BOTS, QUIT,
+        PLAY, PREVIOUS, NEXT;
+
+        public String getName() {
+            return toString();
+        }
     }
 }
