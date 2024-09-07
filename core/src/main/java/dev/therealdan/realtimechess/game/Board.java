@@ -18,6 +18,7 @@ public class Board {
     private static Texture white = new Texture("images/wood_white.png");
 
     private List<Piece> pieces = new ArrayList<>();
+    private List<Piece> enPassant = new ArrayList<>();
 
     private Position hovering = null;
     private Piece selected = null;
@@ -54,8 +55,10 @@ public class Board {
                     app.shapeRenderer.end();
                     app.batch.begin();
                 }
-                if (piece != null && (!piece.equals(getSelected()) || !isHolding()))
-                    piece.render(app, x, y, cell, isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(piece.getPosition())) ? Color.FIREBRICK : piece.getColour().getColor());
+                if (piece != null && (!piece.equals(getSelected()) || !isHolding())) {
+                    boolean enPassantCapture = piece.getType().equals(Piece.Type.PAWN) && isHolding() && getSelected().getType().equals(Piece.Type.PAWN) && !getSelected().getColour().equals(piece.getColour()) && getSelected().getPosition().getY() == piece.getPosition().getY() && Math.abs(getSelected().getPosition().getX() - piece.getPosition().getX()) == 1;
+                    piece.render(app, x, y, cell, enPassantCapture ? Color.FIREBRICK : isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(piece.getPosition())) ? Color.FIREBRICK : piece.getColour().getColor());
+                }
 
                 colour = colour.opposite();
                 x += cell;
@@ -81,8 +84,22 @@ public class Board {
             simulation.simulation = true;
             Piece pieceSim = simulation.byPosition(piece.getPosition());
             simulation.getPieces().remove(simulation.byPosition(position));
-            pieceSim.getPosition().set(position);
-            if (simulation.isChecked(piece.getColour())) return null;
+            if (pieceSim != null) {
+                pieceSim.getPosition().set(position);
+                if (simulation.isChecked(piece.getColour())) return null;
+            }
+        }
+
+        if (piece.getType().equals(Piece.Type.PAWN)) {
+            enPassant.remove(piece);
+            if (Math.abs(piece.getPosition().getY() - position.getY()) > 1)
+                enPassant.add(piece);
+
+            if (Math.abs(piece.getPosition().getX() - position.getX()) == Math.abs(piece.getPosition().getY() - position.getY())) {
+                Piece enPassantCapture = byPosition(piece.getPosition().copy().setX(position.getX()));
+                if (enPassantCapture != null && enPassant.contains(enPassantCapture))
+                    getPieces().remove(enPassantCapture);
+            }
         }
 
         piece.getPosition().set(position);
@@ -169,6 +186,12 @@ public class Board {
                 if (captureRight != null && !captureRight.getColour().equals(piece.getColour())) moves.add(captureRight.getPosition());
                 Piece captureLeft = byPosition(position.copy().moveDiagonally(-1, black ? -1 : 1));
                 if (captureLeft != null && !captureLeft.getColour().equals(piece.getColour())) moves.add(captureLeft.getPosition());
+                Piece pawnRight = byPosition(position.copy().move(1, 0));
+                if (pawnRight != null && pawnRight.getType().equals(Piece.Type.PAWN) && !pawnRight.getColour().equals(piece.getColour()) && enPassant.contains(pawnRight))
+                    moves.add(piece.getPosition().copy().moveDiagonally(1, black ? -1 : 1));
+                Piece pawnLeft = byPosition(position.copy().move(-1, 0));
+                if (pawnLeft != null && pawnLeft.getType().equals(Piece.Type.PAWN) && !pawnLeft.getColour().equals(piece.getColour()) && enPassant.contains(pawnLeft))
+                    moves.add(piece.getPosition().copy().moveDiagonally(-1, black ? -1 : 1));
                 break;
             case QUEEN:
             case ROOK:
@@ -234,9 +257,11 @@ public class Board {
                 simulation.simulation = true;
                 Piece pieceSim = simulation.byPosition(piece.getPosition());
                 simulation.getPieces().remove(simulation.byPosition(move));
-                pieceSim.getPosition().set(move);
-                if (simulation.isChecked(piece.getColour()))
-                    moves.remove(move);
+                if (pieceSim != null) {
+                    pieceSim.getPosition().set(move);
+                    if (simulation.isChecked(piece.getColour()))
+                        moves.remove(move);
+                }
             }
         }
 
