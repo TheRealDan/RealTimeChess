@@ -11,6 +11,7 @@ import dev.therealdan.realtimechess.main.RealTimeChessApp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Board {
 
@@ -19,6 +20,7 @@ public class Board {
 
     private List<Piece> pieces = new ArrayList<>();
     private List<Piece> enPassant = new ArrayList<>();
+    private List<Piece> castles = new ArrayList<>();
 
     private Position hovering = null;
     private Piece selected = null;
@@ -88,6 +90,20 @@ public class Board {
                 pieceSim.getPosition().set(position);
                 if (simulation.isChecked(piece.getColour())) return null;
             }
+        }
+
+        if (piece.getType().equals(Piece.Type.KING)) {
+            if (Math.abs(piece.getPosition().getX() - position.getX()) > 1) {
+                Piece rook = byPosition(position.copy().setX(position.getX() == 7 ? 8 : 1));
+                if (castles.contains(rook))
+                    rook.getPosition().setX(position.getX() == 7 ? 6 : 4);
+                castles.remove(rook);
+            }
+            castles = castles.stream().filter(rook -> !rook.getColour().equals(piece.getColour())).collect(Collectors.toList());
+        }
+
+        if (piece.getType().equals(Piece.Type.ROOK)) {
+            castles.remove(piece);
         }
 
         if (piece.getType().equals(Piece.Type.PAWN)) {
@@ -242,6 +258,17 @@ public class Board {
                     for (int y = -1; y <= 1; y++)
                         if (x != 0 || y != 0)
                             moves.add(position.copy().move(x, y));
+                if (castles.stream().anyMatch(castle -> castle.getColour().equals(piece.getColour()))) {
+                    if (castles.contains(byPosition(position.copy().move(3, 0))))
+                        if (byPosition(position.copy().move(2, 0)) == null)
+                            if (byPosition(position.copy().move(1, 0)) == null)
+                                moves.add(position.copy().move(2, 0));
+                    if (castles.contains(byPosition(position.copy().move(-4, 0))))
+                        if (byPosition(position.copy().move(-3, 0)) == null)
+                            if (byPosition(position.copy().move(-2, 0)) == null)
+                                if (byPosition(position.copy().move(-1, 0)) == null)
+                                    moves.add(position.copy().move(-2, 0));
+                }
                 break;
         }
 
@@ -305,6 +332,9 @@ public class Board {
         board.pieces.add(new Piece(Piece.Type.BISHOP, Piece.Colour.WHITE, new Position("f", 1)));
         board.pieces.add(new Piece(Piece.Type.KNIGHT, Piece.Colour.WHITE, new Position("g", 1)));
         board.pieces.add(new Piece(Piece.Type.ROOK, Piece.Colour.WHITE, new Position("h", 1)));
+
+        for (Piece piece : board.getPieces().stream().filter(piece -> piece.getType().equals(Piece.Type.ROOK)).collect(Collectors.toList()))
+            board.castles.add(piece);
 
         for (String letter : Position.letters.split("")) {
             board.pieces.add(new Piece(Piece.Type.PAWN, Piece.Colour.BLACK, new Position(letter, 7)));
