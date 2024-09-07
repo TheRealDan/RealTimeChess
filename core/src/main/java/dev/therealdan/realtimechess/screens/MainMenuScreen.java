@@ -152,6 +152,14 @@ public class MainMenuScreen implements Screen, InputProcessor {
         app.batch.end();
     }
 
+    private void next() {
+        difficulty = difficulty.equals(Bot.Difficulty.values()[Bot.Difficulty.values().length - 1]) ? Bot.Difficulty.values()[0] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) + 1];
+    }
+
+    private void previous() {
+        difficulty = difficulty.equals(Bot.Difficulty.values()[0]) ? Bot.Difficulty.values()[Bot.Difficulty.values().length - 1] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) - 1];
+    }
+
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
@@ -186,6 +194,14 @@ public class MainMenuScreen implements Screen, InputProcessor {
                 menu = null;
                 difficulty = null;
                 break;
+            case 32:
+            case 22:
+                next();
+                break;
+            case 29:
+            case 21:
+                previous();
+                break;
         }
         return false;
     }
@@ -211,10 +227,10 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     app.setScreen(new GameScreen(app, difficulty));
                     return false;
                 case PREVIOUS:
-                    difficulty = difficulty.equals(Bot.Difficulty.values()[0]) ? Bot.Difficulty.values()[Bot.Difficulty.values().length - 1] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) - 1];
+                    previous();
                     return false;
                 case NEXT:
-                    difficulty = difficulty.equals(Bot.Difficulty.values()[Bot.Difficulty.values().length - 1]) ? Bot.Difficulty.values()[0] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) + 1];
+                    next();
                     return false;
                 case QUIT:
                     Gdx.app.exit();
