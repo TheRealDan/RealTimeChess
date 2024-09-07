@@ -58,7 +58,7 @@ public class Board {
                     app.batch.begin();
                 }
                 if (piece != null && (!piece.equals(getSelected()) || !isHolding())) {
-                    boolean enPassantCapture = piece.getType().equals(Piece.Type.PAWN) && isHolding() && getSelected().getType().equals(Piece.Type.PAWN) && !getSelected().getColour().equals(piece.getColour()) && getSelected().getPosition().getY() == piece.getPosition().getY() && Math.abs(getSelected().getPosition().getX() - piece.getPosition().getX()) == 1;
+                    boolean enPassantCapture = enPassant.contains(piece) && isHolding() && getSelected().getType().equals(Piece.Type.PAWN) && !getSelected().getColour().equals(piece.getColour()) && getSelected().getPosition().getY() == piece.getPosition().getY() && Math.abs(getSelected().getPosition().getX() - piece.getPosition().getX()) == 1;
                     piece.render(app, x, y, cell, enPassantCapture ? Color.FIREBRICK : isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(piece.getPosition())) ? Color.FIREBRICK : piece.getColour().getColor());
                 }
 
