@@ -20,13 +20,13 @@ public class GameScreen implements Screen, InputProcessor {
 
     private GameInstance instance;
 
-    public GameScreen(RealTimeChessApp app, Bot.Difficulty difficulty) {
+    public GameScreen(RealTimeChessApp app, Bot.Difficulty difficulty, Piece.Colour colour) {
         this.app = app;
 
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
 
-        instance = new GameInstance(difficulty);
+        instance = new GameInstance(difficulty, colour);
     }
 
     @Override
@@ -36,15 +36,11 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0.2f, 0.1f, 1);
-
         camera.update();
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
-        app.batch.begin();
         instance.render(app);
-        app.batch.end();
     }
 
     @Override

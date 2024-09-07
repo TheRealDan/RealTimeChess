@@ -5,13 +5,12 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Bot;
+import dev.therealdan.realtimechess.game.Piece;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
+import dev.therealdan.realtimechess.main.Settings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,10 +24,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private ScreenViewport viewport;
     private OrthographicCamera camera;
 
-    private Texture black;
-    private Texture firebrick;
-    private Texture brown;
-
     private Option hovering = null;
     private Option menu = null;
     private Bot.Difficulty difficulty = null;
@@ -38,10 +33,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
-
-        black = new Texture("images/black.png");
-        firebrick = new Texture("images/firebrick.png");
-        brown = new Texture("images/brown.png");
     }
 
     @Override
@@ -51,8 +42,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0.2f, 0.1f, 1);
-
         camera.update();
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
@@ -63,22 +52,28 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
         String title = menu != null && menu.equals(Option.BOTS) ? "Choose your opponent" : "Real Time Chess";
 
-        app.batch.begin();
         app.font.center(app.batch, title, 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
-        app.batch.end();
 
         y -= height;
 
         if (menu == null) {
-            menu(y, oheight);
+            renderMenu(y, oheight);
         } else {
-            bots(y, oheight);
+            switch (menu) {
+                case BOTS:
+                    renderBots(y, oheight);
+                    break;
+                case SETTINGS:
+                    app.settings.render(app, y, oheight);
+                    break;
+            }
         }
     }
 
-    private void menu(float oy, float oheight) {
+    private void renderMenu(float oy, float oheight) {
         List<Option> options = new ArrayList<>();
         options.add(Option.BOTS);
+        options.add(Option.SETTINGS);
         options.add(Option.QUIT);
 
         float spacing = Gdx.graphics.getHeight() / 25f;
@@ -91,20 +86,14 @@ public class MainMenuScreen implements Screen, InputProcessor {
         hovering = null;
         for (Option option : options) {
             if (Mouse.containsMouse(x, y, width, height)) hovering = option;
-            app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            app.shapeRenderer.setColor(Mouse.containsMouse(x, y, width, height) ? Color.BROWN : Color.FIREBRICK);
-            app.shapeRenderer.rect(x, y, width, height);
-            app.shapeRenderer.end();
-
-            app.batch.begin();
+            app.batch.setColor(Color.WHITE);
+            app.batch.draw(option.equals(hovering) ? app.textures.brown : app.textures.firebrick, x, y, width, height);
             app.font.center(app.batch, option.getName(), x + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
-            app.batch.end();
-
             y -= height + spacing;
         }
     }
 
-    private void bots(float oy, float oheight) {
+    private void renderBots(float oy, float oheight) {
         if (difficulty == null) difficulty = Arrays.stream(Bot.Difficulty.values()).findFirst().get();
         hovering = null;
 
@@ -119,11 +108,10 @@ public class MainMenuScreen implements Screen, InputProcessor {
         float x = -spacing / 2f - width;
         float y = oy - height;
 
-        app.batch.begin();
         app.batch.setColor(Color.WHITE);
         app.batch.draw(difficulty.getTexture(), x, y, width, height);
         x += width + spacing;
-        app.batch.draw(black, x, y, width, height);
+        app.batch.draw(app.textures.black, x, y, width, height);
 
         float ox = x;
         float buttonX = ox + width / 2f - buttonWidth / 2f;
@@ -137,19 +125,17 @@ public class MainMenuScreen implements Screen, InputProcessor {
         app.font.draw(app.batch, difficulty.getDescription(), x, y, width - spacing, (int) (12f * app.font.scale), Color.WHITE);
 
         if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.PLAY;
-        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? app.textures.brown : app.textures.firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
         app.font.center(app.batch, Option.PLAY.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
         buttonWidth /= 2f;
         buttonX = ox + spacing;
         if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.PREVIOUS;
-        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? app.textures.brown : app.textures.firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
         app.font.center(app.batch, Option.PREVIOUS.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
         buttonX = ox + width - spacing - buttonWidth;
         if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.NEXT;
-        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? brown : firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
+        app.batch.draw(Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight) ? app.textures.brown : app.textures.firebrick, buttonX, buttonY, buttonWidth, buttonHeight);
         app.font.center(app.batch, Option.NEXT.getName(), buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f, buttonFontSize, Color.WHITE);
-
-        app.batch.end();
     }
 
     private void next() {
@@ -218,13 +204,20 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        if (Option.SETTINGS.equals(menu)) {
+            if (app.settings.touchDown()) {
+                menu = null;
+            }
+            return false;
+        }
+
         if (hovering != null) {
             switch (hovering) {
                 default:
                     menu = hovering;
                     return false;
                 case PLAY:
-                    app.setScreen(new GameScreen(app, difficulty));
+                    app.setScreen(new GameScreen(app, difficulty, app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
                     return false;
                 case PREVIOUS:
                     previous();
@@ -266,7 +259,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     public enum Option {
-        BOTS, QUIT,
+        BOTS, SETTINGS, QUIT,
         PLAY, PREVIOUS, NEXT;
 
         public String getName() {

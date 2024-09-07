@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class Piece {
 
-    private static HashMap<Type, Texture> textures = new HashMap<>();
+    private static HashMap<String, Texture> textures = new HashMap<>();
 
     private Type type;
     private Colour colour;
@@ -73,9 +73,9 @@ public class Piece {
         }
 
         public Texture getTexture() {
-            if (!textures.containsKey(this))
-                textures.put(this, new Texture("images/pieces/" + toString().toLowerCase() + ".png"));
-            return textures.get(this);
+            if (!textures.containsKey(toString()))
+                textures.put(toString(), new Texture("images/pieces/" + toString().toLowerCase() + ".png"));
+            return textures.get(toString());
         }
     }
 
@@ -88,6 +88,12 @@ public class Piece {
 
         public Color getColor() {
             return equals(BLACK) ? Color.BLACK : Color.WHITE;
+        }
+
+        public Texture getTexture() {
+            if (!textures.containsKey(toString()))
+                textures.put(toString(), new Texture("images/board/" + toString().toLowerCase() + ".png"));
+            return textures.get(toString());
         }
     }
 }

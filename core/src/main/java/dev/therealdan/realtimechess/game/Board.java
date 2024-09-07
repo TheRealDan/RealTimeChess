@@ -3,7 +3,6 @@ package dev.therealdan.realtimechess.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
@@ -15,9 +14,6 @@ import java.util.stream.Collectors;
 
 public class Board {
 
-    private static Texture black = new Texture("images/wood_black.png");
-    private static Texture white = new Texture("images/wood_white.png");
-
     private List<Piece> pieces = new ArrayList<>();
     private List<Piece> enPassant = new ArrayList<>();
     private List<Piece> castles = new ArrayList<>();
@@ -28,7 +24,7 @@ public class Board {
     private boolean simulation = false;
 
     public void render(RealTimeChessApp app, float ox, float oy, float width, float height) {
-        Piece.Colour colour = Piece.Colour.WHITE;
+        Piece.Colour board = Piece.Colour.WHITE;
         float cell = width / 8;
         oy += height - cell;
         float x = ox, y = oy;
@@ -41,7 +37,7 @@ public class Board {
                     setHovering(position);
 
                 app.batch.setColor(Color.WHITE);
-                app.batch.draw(colour.equals(Piece.Colour.BLACK) ? black : white, x, y, cell, cell);
+                app.batch.draw(board.getTexture(), x, y, cell, cell);
                 if (Gdx.input.isKeyPressed(Input.Keys.TAB)) {
                     float spacing = cell * 0.1f;
                     if (position.getNumber() == 1) app.font.center(app.batch, position.getLetter(), x + cell - spacing, y + spacing * 2f, (int) (10f * app.font.scale), Color.BLACK);
@@ -61,12 +57,12 @@ public class Board {
                     piece.render(app, x, y, cell, enPassantCapture ? Color.FIREBRICK : isHolding() && getPossibleMoves(getSelected()).stream().anyMatch(move -> move.equals(piece.getPosition())) ? Color.FIREBRICK : piece.getColour().getColor());
                 }
 
-                colour = colour.opposite();
+                board = board.opposite();
                 x += cell;
             }
             y -= cell;
             x = ox;
-            colour = colour.opposite();
+            board = board.opposite();
         }
         if (isHolding() && getSelected() != null)
             getSelected().render(app, Mouse.getX() - cell / 2f, Mouse.getY() - cell / 2f, cell);
