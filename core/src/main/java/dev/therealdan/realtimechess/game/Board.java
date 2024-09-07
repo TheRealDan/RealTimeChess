@@ -49,7 +49,7 @@ public class Board {
                     app.batch.end();
                     app.shapeRenderer.setAutoShapeType(true);
                     app.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                    app.shapeRenderer.setColor(Color.WHITE);
+                    app.shapeRenderer.setColor(getSelected().getColour().equals(Piece.Colour.BLACK) ? Color.BLACK : Color.WHITE);
                     app.shapeRenderer.circle(x + cell / 2f, y + cell / 2f, cell / 8f, 64);
                     app.shapeRenderer.end();
                     app.batch.begin();
