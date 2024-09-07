@@ -7,10 +7,12 @@ public class GameInstance {
 
     private Board board;
     private Bot bot;
+    private Piece.Colour colour;
 
     public GameInstance(Bot.Difficulty difficulty) {
         board = Board.standardBoard();
         bot = new Bot(difficulty, Piece.Colour.BLACK);
+        colour = Piece.Colour.WHITE;
     }
 
     public void render(RealTimeChessApp app) {
@@ -27,5 +29,9 @@ public class GameInstance {
 
     public Bot getBot() {
         return bot;
+    }
+
+    public Piece.Colour getColour() {
+        return colour;
     }
 }

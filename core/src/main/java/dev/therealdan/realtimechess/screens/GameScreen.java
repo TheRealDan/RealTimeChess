@@ -95,7 +95,7 @@ public class GameScreen implements Screen, InputProcessor {
     public boolean touchDown(int i, int i1, int i2, int i3) {
         if (instance.getBoard().getHovering() != null) {
             Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
-            if (piece != null && (piece.getColour().equals(Piece.Colour.WHITE) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {
+            if (piece != null && (piece.getColour().equals(instance.getColour()) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {
                 instance.getBoard().select(piece);
                 instance.getBoard().setHolding(true);
             }
