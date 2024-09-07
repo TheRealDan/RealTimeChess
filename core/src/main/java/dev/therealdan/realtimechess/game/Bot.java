@@ -22,6 +22,17 @@ public class Bot {
     }
 
     public void think(Board board) {
+        if (getDifficulty().equals(Difficulty.BRAINLESS)) return;
+
+        Piece promoting = board.getPromoting();
+        if (promoting != null) {
+            if (promoting.getColour().equals(getColour())) {
+                board.promote(promoting, Piece.Type.QUEEN);
+            } else {
+                return;
+            }
+        }
+
         switch (getDifficulty()) {
             case LEMONS:
                 if (getTimeSinceLastMove() < 5000) return;

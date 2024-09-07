@@ -42,7 +42,9 @@ public class GameScreen implements Screen, InputProcessor {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
+        app.batch.begin();
         instance.render(app);
+        app.batch.end();
     }
 
     @Override
@@ -93,6 +95,11 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        if (instance.getBoard().getPromoting() != null && instance.getBoard().getPromoting().getColour().equals(instance.getColour())) {
+            instance.getBoard().promote(instance.getBoard().getPromoting(), instance.getPromotion());
+            return false;
+        }
+
         if (instance.getBoard().getHovering() != null) {
             Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
             if (piece != null && (piece.getColour().equals(instance.getColour()) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {

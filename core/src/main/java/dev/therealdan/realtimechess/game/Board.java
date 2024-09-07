@@ -28,7 +28,6 @@ public class Board {
     private boolean simulation = false;
 
     public void render(RealTimeChessApp app, float ox, float oy, float width, float height) {
-        app.batch.begin();
         Piece.Colour colour = Piece.Colour.WHITE;
         float cell = width / 8;
         oy += height - cell;
@@ -71,10 +70,10 @@ public class Board {
         }
         if (isHolding() && getSelected() != null)
             getSelected().render(app, Mouse.getX() - cell / 2f, Mouse.getY() - cell / 2f, cell);
-        app.batch.end();
     }
 
     public Piece moveTo(Piece piece, Position position) {
+        if (getPromoting() != null) return null;
         if (piece == null || position == null) return null;
         Piece captured = byPosition(position);
         if (captured != null && captured.getColour().equals(piece.getColour())) return null;
@@ -180,6 +179,20 @@ public class Board {
                 return false;
         }
         return true;
+    }
+
+    public void promote(Piece piece, Piece.Type type) {
+        pieces.remove(piece);
+        pieces.add(new Piece(type, piece.getColour(), piece.getPosition()));
+    }
+
+    public Piece getPromoting() {
+        for (Piece piece : getPieces()) {
+            if (!piece.getType().equals(Piece.Type.PAWN)) continue;
+            if (piece.getColour().equals(Piece.Colour.BLACK) && piece.getPosition().getY() == 1) return piece;
+            if (piece.getColour().equals(Piece.Colour.WHITE) && piece.getPosition().getY() == 8) return piece;
+        }
+        return null;
     }
 
     public List<Position> getPossibleMoves(Piece piece) {

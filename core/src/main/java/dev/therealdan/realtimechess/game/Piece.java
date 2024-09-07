@@ -22,15 +22,20 @@ public class Piece {
         this.position = position;
     }
 
+    public static void render(RealTimeChessApp app, float x, float y, float size, Type type, Color color) {
+        float spacing = size * 0.1f;
+        size -= spacing * 2f;
+        app.batch.setColor(color);
+        app.batch.draw(type.getTexture(), x + spacing, y + spacing, size, size);
+    }
+
     public void render(RealTimeChessApp app, float x, float y, float cell) {
         render(app, x, y, cell, getColour().getColor());
     }
 
     public void render(RealTimeChessApp app, float x, float y, float cell, Color color) {
         float spacing = cell * 0.1f;
-        float width = cell - spacing * 2f, height = width;
-        app.batch.setColor(color);
-        app.batch.draw(getType().getTexture(), x + spacing, y + spacing, width, height);
+        render(app, x, y, cell, getType(), color);
 
         if (Gdx.input.isKeyPressed(Input.Keys.TAB))
             app.font.center(app.batch, getPosition().getNotation(), x + cell / 2f, y + spacing * 3f, (int) (10f * app.font.scale), getColour().opposite().getColor());
