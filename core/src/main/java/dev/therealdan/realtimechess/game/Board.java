@@ -160,7 +160,10 @@ public class Board {
                 Piece current = byPosition(position.copy().move(0, black ? -1 : 1));
                 if (current == null) {
                     moves.add(position.copy().move(0, black ? -1 : 1));
-                    if (piece.isStartPosition()) moves.add(position.copy().move(0, black ? -2 : 2));
+                    if (piece.isStartPosition()) {
+                        current = byPosition(position.copy().move(0, black ? -2 : 2));
+                        if (current == null) moves.add(position.copy().move(0, black ? -2 : 2));
+                    }
                 }
                 Piece captureRight = byPosition(position.copy().moveDiagonally(1, black ? -1 : 1));
                 if (captureRight != null && !captureRight.getColour().equals(piece.getColour())) moves.add(captureRight.getPosition());
