@@ -188,26 +188,26 @@ public class Board {
                 if (captureLeft != null && !captureLeft.getColour().equals(piece.getColour())) moves.add(captureLeft.getPosition());
                 Piece pawnRight = byPosition(position.copy().move(1, 0));
                 if (pawnRight != null && pawnRight.getType().equals(Piece.Type.PAWN) && !pawnRight.getColour().equals(piece.getColour()) && enPassant.contains(pawnRight))
-                    moves.add(piece.getPosition().copy().moveDiagonally(1, black ? -1 : 1));
+                    moves.add(position.copy().moveDiagonally(1, black ? -1 : 1));
                 Piece pawnLeft = byPosition(position.copy().move(-1, 0));
                 if (pawnLeft != null && pawnLeft.getType().equals(Piece.Type.PAWN) && !pawnLeft.getColour().equals(piece.getColour()) && enPassant.contains(pawnLeft))
-                    moves.add(piece.getPosition().copy().moveDiagonally(-1, black ? -1 : 1));
+                    moves.add(position.copy().moveDiagonally(-1, black ? -1 : 1));
                 break;
             case QUEEN:
             case ROOK:
-                for (int x = piece.getPosition().getX() + 1; x <= 8; x++) {
+                for (int x = position.getX() + 1; x <= 8; x++) {
                     moves.add(position.copy().setX(x));
                     if (byPosition(position.copy().setX(x)) != null) break;
                 }
-                for (int x = piece.getPosition().getX() - 1; x >= 1; x--) {
+                for (int x = position.getX() - 1; x >= 1; x--) {
                     moves.add(position.copy().setX(x));
                     if (byPosition(position.copy().setX(x)) != null) break;
                 }
-                for (int y = piece.getPosition().getY() + 1; y <= 8; y++) {
+                for (int y = position.getY() + 1; y <= 8; y++) {
                     moves.add(position.copy().setY(y));
                     if (byPosition(position.copy().setY(y)) != null) break;
                 }
-                for (int y = piece.getPosition().getY() - 1; y >= 1; y--) {
+                for (int y = position.getY() - 1; y >= 1; y--) {
                     moves.add(position.copy().setY(y));
                     if (byPosition(position.copy().setY(y)) != null) break;
                 }
