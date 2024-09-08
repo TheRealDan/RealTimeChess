@@ -40,23 +40,25 @@ public class RealTimeChessApp extends Game {
     }
 
     @Override
-    public void dispose() {
-        font.dispose();
+    public void pause() {
+        super.pause();
+        settings.save(preferences);
+    }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        font.dispose();
         shapeRenderer.dispose();
         batch.dispose();
-
-        settings.save(preferences);
     }
 
     @Override
     public void resize(int width, int height) {
         shapeRenderer.dispose();
         batch.dispose();
-
         shapeRenderer = new ShapeRenderer();
         batch = new SpriteBatch();
-
-        getScreen().resize(width, height);
+        super.resize(width, height);
     }
 }
