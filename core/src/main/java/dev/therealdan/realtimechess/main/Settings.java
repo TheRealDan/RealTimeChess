@@ -69,6 +69,7 @@ public class Settings {
 
     public void save(Preferences preferences) {
         preferences.putBoolean("settings.preference", getToggle(Setting.PREFERENCE));
+        preferences.flush();
     }
 
     private void setToggle(Setting setting, boolean enabled) {
