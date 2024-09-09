@@ -52,9 +52,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
         float height = Gdx.graphics.getHeight() - oheight;
         float y = Gdx.graphics.getHeight() / 2f;
 
-        String title = menu != null && menu.equals(Option.BOTS) ? "Choose your opponent" : "Real Time Chess";
-
-        app.font.center(app.batch, title, 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
+        app.font.center(app.batch, (menu != null ? menu : Option.MAIN).getTitle(), 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
 
         y -= height;
 
@@ -271,11 +269,23 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     public enum Option {
+        MAIN,
         BOTS, SETTINGS, QUIT,
         PLAY, PREVIOUS, NEXT;
 
         public String getName() {
             return toString();
+        }
+
+        public String getTitle() {
+            switch (this) {
+                default:
+                    return "Real Time Chess";
+                case BOTS:
+                    return "Choose your opponent";
+                case SETTINGS:
+                    return "Settings";
+            }
         }
     }
 }
