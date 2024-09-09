@@ -87,30 +87,30 @@ public class Board {
             }
         }
 
-        if (piece.getType().equals(Piece.Type.KING)) {
-            if (Math.abs(piece.getPosition().getX() - position.getX()) > 1) {
-                Piece rook = byPosition(position.copy().setX(position.getX() == 7 ? 8 : 1));
-                if (castles.contains(rook))
-                    rook.getPosition().setX(position.getX() == 7 ? 6 : 4);
-                castles.remove(rook);
-            }
-            castles = castles.stream().filter(rook -> !rook.getColour().equals(piece.getColour())).collect(Collectors.toList());
-        }
+        switch (piece.getType()) {
+            case PAWN:
+                enPassant.remove(piece);
+                if (Math.abs(piece.getPosition().getY() - position.getY()) > 1)
+                    enPassant.add(piece);
 
-        if (piece.getType().equals(Piece.Type.ROOK)) {
-            castles.remove(piece);
-        }
-
-        if (piece.getType().equals(Piece.Type.PAWN)) {
-            enPassant.remove(piece);
-            if (Math.abs(piece.getPosition().getY() - position.getY()) > 1)
-                enPassant.add(piece);
-
-            if (Math.abs(piece.getPosition().getX() - position.getX()) == Math.abs(piece.getPosition().getY() - position.getY())) {
-                Piece enPassantCapture = byPosition(piece.getPosition().copy().setX(position.getX()));
-                if (enPassantCapture != null && enPassant.contains(enPassantCapture))
-                    getPieces().remove(enPassantCapture);
-            }
+                if (Math.abs(piece.getPosition().getX() - position.getX()) == Math.abs(piece.getPosition().getY() - position.getY())) {
+                    Piece enPassantCapture = byPosition(piece.getPosition().copy().setX(position.getX()));
+                    if (enPassantCapture != null && enPassant.contains(enPassantCapture))
+                        getPieces().remove(enPassantCapture);
+                }
+                break;
+            case ROOK:
+                castles.remove(piece);
+                break;
+            case KING:
+                if (Math.abs(piece.getPosition().getX() - position.getX()) > 1) {
+                    Piece rook = byPosition(position.copy().setX(position.getX() == 7 ? 8 : 1));
+                    if (castles.contains(rook))
+                        rook.getPosition().setX(position.getX() == 7 ? 6 : 4);
+                    castles.remove(rook);
+                }
+                castles = castles.stream().filter(rook -> !rook.getColour().equals(piece.getColour())).collect(Collectors.toList());
+                break;
         }
 
         piece.getPosition().set(position);
