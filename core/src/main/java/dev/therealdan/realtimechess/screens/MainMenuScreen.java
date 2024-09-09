@@ -26,7 +26,9 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     private Option hovering = null;
     private Option menu = null;
+    private Bot.Difficulty previousDifficulty = null;
     private Bot.Difficulty difficulty = null;
+    private float textureXOffset = 0;
 
     public MainMenuScreen(RealTimeChessApp app) {
         this.app = app;
@@ -61,7 +63,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
         } else {
             switch (menu) {
                 case BOTS:
-                    renderBots(y, oheight);
+                    renderBots(delta, y, oheight);
                     break;
                 case SETTINGS:
                     app.settings.render(app, y, oheight);
@@ -93,8 +95,9 @@ public class MainMenuScreen implements Screen, InputProcessor {
         }
     }
 
-    private void renderBots(float oy, float oheight) {
-        if (difficulty == null) difficulty = Arrays.stream(Bot.Difficulty.values()).findFirst().get();
+    private void renderBots(float delta, float oy, float oheight) {
+        if (difficulty == null) difficulty = Bot.Difficulty.values()[0];
+        if (previousDifficulty == null) previousDifficulty = difficulty;
         hovering = null;
 
         float spacing = Gdx.graphics.getHeight() / 25f;
@@ -108,8 +111,16 @@ public class MainMenuScreen implements Screen, InputProcessor {
         float x = -spacing / 2f - width;
         float y = oy - height;
 
+        if (difficulty != previousDifficulty) {
+            textureXOffset += delta * width * 3f;
+            if (textureXOffset >= width)
+                previousDifficulty = difficulty;
+        } else if (textureXOffset > 0) {
+            textureXOffset -= delta * width * 3f;
+        }
+
         app.batch.setColor(Color.WHITE);
-        app.batch.draw(difficulty.getTexture(), x, y, width, height);
+        app.batch.draw(previousDifficulty.getTexture(), x + textureXOffset, y, width, height);
         x += width + spacing;
         app.batch.draw(app.textures.black, x, y, width, height);
 
@@ -178,6 +189,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
             case 111:
                 hovering = null;
                 menu = null;
+                previousDifficulty = null;
                 difficulty = null;
                 break;
             case 32:
