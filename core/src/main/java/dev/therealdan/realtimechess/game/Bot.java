@@ -99,7 +99,7 @@ public class Bot {
     }
 
     private List<Piece> getRandomOrder(Board board, Piece.Colour colour) {
-        List<Piece> pieces = new ArrayList<>(board.getPieces().stream().filter(piece -> piece.getColour().equals(getColour())).collect(Collectors.toList()));
+        List<Piece> pieces = new ArrayList<>(board.getPieces().stream().filter(piece -> piece.getColour().equals(colour) && !piece.isOnCooldown()).collect(Collectors.toList()));
         Collections.shuffle(pieces);
         return pieces;
     }

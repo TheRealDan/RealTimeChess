@@ -74,6 +74,7 @@ public class Board {
         Piece captured = byPosition(position);
         if (captured != null && captured.getColour().equals(piece.getColour())) return null;
 
+        if (piece.isOnCooldown()) return null;
         if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return null;
 
         if (!simulation) {
@@ -102,17 +103,24 @@ public class Board {
             case ROOK:
                 castles.remove(piece);
                 break;
+            case BISHOP:
+                for (Piece bishop : getPieces().stream().filter(each -> each.getColour().equals(piece.getColour()) && each.getType().equals(Piece.Type.BISHOP) && !each.equals(piece)).collect(Collectors.toList()))
+                    bishop.resetCooldown();
+                break;
             case KING:
                 if (Math.abs(piece.getPosition().getX() - position.getX()) > 1) {
                     Piece rook = byPosition(position.copy().setX(position.getX() == 7 ? 8 : 1));
-                    if (castles.contains(rook))
+                    if (castles.contains(rook)) {
+                        rook.moved();
                         rook.getPosition().setX(position.getX() == 7 ? 6 : 4);
+                    }
                     castles.remove(rook);
                 }
                 castles = castles.stream().filter(rook -> !rook.getColour().equals(piece.getColour())).collect(Collectors.toList());
                 break;
         }
 
+        piece.moved();
         piece.getPosition().set(position);
         if (captured != null)
             getPieces().remove(captured);

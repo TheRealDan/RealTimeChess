@@ -98,6 +98,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (instance.getBoard().getHovering() != null) {
             Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
             if (piece != null && (piece.getColour().equals(instance.getColour()) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {
+                if (piece.isOnCooldown()) return false;
                 if (instance.getBoard().isChecked(instance.getColour()) && instance.getBoard().getPossibleMoves(piece).isEmpty()) return false;
                 instance.getBoard().select(piece);
                 instance.getBoard().setHolding(true);

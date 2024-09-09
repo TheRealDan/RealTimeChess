@@ -16,10 +16,14 @@ public class Piece {
     private Colour colour;
     private Position position;
 
+    private long lastMove;
+
     public Piece(Type type, Colour colour, Position position) {
         this.type = type;
         this.colour = colour;
         this.position = position;
+
+        resetCooldown();
     }
 
     public static void render(RealTimeChessApp app, float x, float y, float size, Type type, Color color) {
@@ -35,10 +39,21 @@ public class Piece {
 
     public void render(RealTimeChessApp app, float x, float y, float cell, Color color) {
         float spacing = cell * 0.1f;
+        if (isOnCooldown()) {
+            app.batch.draw(app.textures.firebrick, x, y, cell, cell * getTimeSinceLastMove() / getCooldown());
+        }
         render(app, x, y, cell, getType(), color);
 
         if (Gdx.input.isKeyPressed(Input.Keys.TAB))
             app.font.center(app.batch, getPosition().getNotation(), x + cell / 2f, y + spacing * 3f, (int) (10f * app.font.scale), getColour().opposite().getColor());
+    }
+
+    public void moved() {
+        lastMove = System.currentTimeMillis();
+    }
+
+    public void resetCooldown() {
+        lastMove = System.currentTimeMillis() - getCooldown();
     }
 
     public boolean isStartPosition() {
@@ -47,6 +62,26 @@ public class Piece {
                 return getPosition().getNumber() == (getColour().equals(Colour.BLACK) ? 7 : 2);
         }
         return false;
+    }
+
+    public boolean isOnCooldown() {
+        return getTimeSinceLastMove() < getCooldown();
+    }
+
+    public long getCooldown() {
+        switch (getType()) {
+            default:
+                return 3000;
+            case KING:
+            case PAWN:
+                return 1500;
+            case KNIGHT:
+                return 1000;
+        }
+    }
+
+    public long getTimeSinceLastMove() {
+        return System.currentTimeMillis() - lastMove;
     }
 
     public Type getType() {
