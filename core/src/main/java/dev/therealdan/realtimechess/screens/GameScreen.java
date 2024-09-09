@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Bot;
 import dev.therealdan.realtimechess.game.GameInstance;
@@ -99,6 +98,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (instance.getBoard().getHovering() != null) {
             Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
             if (piece != null && (piece.getColour().equals(instance.getColour()) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {
+                if (instance.getBoard().isChecked(instance.getColour()) && instance.getBoard().getPossibleMoves(piece).isEmpty()) return false;
                 instance.getBoard().select(piece);
                 instance.getBoard().setHolding(true);
             }
