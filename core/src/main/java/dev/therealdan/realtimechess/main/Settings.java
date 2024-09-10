@@ -20,6 +20,7 @@ public class Settings {
     public Settings(Preferences preferences) {
         setToggle(Setting.PREFERENCE, preferences.getBoolean("settings.preference", true));
         setNumber(Setting.PORT, preferences.getLong("settings.port", 42000));
+        setString(Setting.IP_ADDRESS, preferences.getString("settings.address", ""));
     }
 
     public void render(RealTimeChessApp app, float oy, float oheight) {
@@ -32,6 +33,7 @@ public class Settings {
 
         hovering = null;
         for (Setting setting : Setting.values()) {
+            if (!setting.isSetting()) continue;
             switch (setting.getType()) {
                 default:
                     app.batch.setColor(Color.WHITE);
@@ -120,6 +122,7 @@ public class Settings {
     public void save(Preferences preferences) {
         preferences.putBoolean("settings.preference", getToggle(Setting.PREFERENCE));
         preferences.putLong("settings.port", getNumber(Setting.PORT));
+        preferences.putString("settings.address", getString(Setting.IP_ADDRESS));
         preferences.flush();
     }
 
@@ -135,7 +138,7 @@ public class Settings {
         return toggles.contains(setting);
     }
 
-    private void setString(Setting setting, String value) {
+    public void setString(Setting setting, String value) {
         strings.put(setting, value);
     }
 
@@ -152,7 +155,7 @@ public class Settings {
     }
 
     public enum Setting {
-        PREFERENCE, PORT,
+        PREFERENCE, PORT, IP_ADDRESS,
         BACK;
 
         public Type getType() {
@@ -163,11 +166,22 @@ public class Settings {
                     return Type.TOGGLE;
                 case PORT:
                     return Type.NUMBER;
+                case IP_ADDRESS:
+                    return Type.STRING;
             }
         }
 
         public String getName() {
-            return toString();
+            return toString().replace("_", " ");
+        }
+
+        public boolean isSetting() {
+            switch (this) {
+                default:
+                    return true;
+                case IP_ADDRESS:
+                    return false;
+            }
         }
     }
 

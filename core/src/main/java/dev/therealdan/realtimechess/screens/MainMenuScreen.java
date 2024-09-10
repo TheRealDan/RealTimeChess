@@ -30,7 +30,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private Bot.Difficulty previousDifficulty = null;
     private Bot.Difficulty difficulty = null;
     private float textureXOffset = 0;
-    private String host = "";
     private boolean editHost = false;
 
     public MainMenuScreen(RealTimeChessApp app) {
@@ -93,7 +92,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
                 spacing = 5f;
                 width = owidth - height - app.font.getWidth(app.batch, "IP ADDRESS", (int) (16f * app.font.scale));
                 app.batch.draw(app.textures.white, x + (owidth - width), y + spacing, width - spacing, height - spacing * 2f);
-                app.font.center(app.batch, host + (editHost && System.currentTimeMillis() % 1500 > 750 ? "|" : ""), x + (owidth - width) + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.BLACK);
+                app.font.center(app.batch, app.settings.getString(Settings.Setting.IP_ADDRESS) + (editHost && System.currentTimeMillis() % 1500 > 750 ? "|" : ""), x + (owidth - width) + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.BLACK);
                 spacing = ospacing;
                 width = owidth;
             } else {
@@ -205,7 +204,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
                 default:
                     String key = Input.Keys.toString(i);
                     if (!"1234567890.".contains(key)) return false;
-                    host += key;
+                    app.settings.setString(Settings.Setting.IP_ADDRESS, app.settings.getString(Settings.Setting.IP_ADDRESS) + key);
                     return false;
                 case 111:
                     if (editHost) {
@@ -218,8 +217,8 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     editHost = false;
                     return false;
                 case 67:
-                    if (!host.isEmpty())
-                        host = host.substring(0, host.length() - 1);
+                    if (!app.settings.getString(Settings.Setting.IP_ADDRESS).isEmpty())
+                        app.settings.setString(Settings.Setting.IP_ADDRESS, app.settings.getString(Settings.Setting.IP_ADDRESS).substring(0, app.settings.getString(Settings.Setting.IP_ADDRESS).length() - 1));
                     return false;
             }
         }
@@ -281,7 +280,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     editHost = true;
                     return false;
                 case JOIN_START:
-                    app.setScreen(new GameScreen(app, host, (int) app.settings.getNumber(Settings.Setting.PORT)));
+                    app.setScreen(new GameScreen(app, app.settings.getString(Settings.Setting.IP_ADDRESS), (int) app.settings.getNumber(Settings.Setting.PORT)));
                     return false;
                 case PREVIOUS:
                     previous();
