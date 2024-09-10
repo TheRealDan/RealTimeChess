@@ -72,7 +72,6 @@ public class Settings {
     }
 
     public boolean keyDown(int i) {
-        System.out.println(i);
         switch (i) {
             case 111:
                 if (editing != null) {
