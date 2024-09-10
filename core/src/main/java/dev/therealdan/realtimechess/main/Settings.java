@@ -19,7 +19,7 @@ public class Settings {
 
     public Settings(Preferences preferences) {
         setToggle(Setting.PREFERENCE, preferences.getBoolean("settings.preference", true));
-        setNumber(Setting.PORT, preferences.getLong("settings.port", 8192));
+        setNumber(Setting.PORT, preferences.getLong("settings.port", 42000));
     }
 
     public void render(RealTimeChessApp app, float oy, float oheight) {
