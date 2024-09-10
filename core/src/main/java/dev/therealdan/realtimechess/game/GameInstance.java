@@ -47,7 +47,8 @@ public class GameInstance {
             while (true) {
                 try {
                     String incoming = new BufferedReader(new InputStreamReader(connected.getInputStream())).readLine();
-                    incoming(new Notation(incoming));
+                    if (incoming != null)
+                        incoming(new Notation(incoming));
                 } catch (IOException e) {
                     Gdx.app.log("Server", "Error", e);
                 }
@@ -60,7 +61,8 @@ public class GameInstance {
             while (true) {
                 try {
                     String incoming = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
-                    incoming(new Notation(incoming));
+                    if (incoming != null)
+                        incoming(new Notation(incoming));
                 } catch (IOException e) {
                     Gdx.app.log("Client", "Error", e);
                 }
