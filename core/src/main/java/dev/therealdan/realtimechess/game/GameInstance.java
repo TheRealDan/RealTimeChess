@@ -70,8 +70,13 @@ public class GameInstance {
 
     private void incoming(Notation notation) {
         Piece piece = getBoard().byPosition(notation.getFrom());
-        if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) return;
-        getBoard().moveTo(piece, notation.getTo());
+        if (notation.isPromotion()) {
+            if (piece == null || !piece.getType().equals(Piece.Type.PAWN) || piece.getColour().equals(getColour())) return;
+            getBoard().promote(piece, notation.getType());
+        } else {
+            if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) return;
+            getBoard().moveTo(piece, notation.getTo());
+        }
     }
 
     public void render(RealTimeChessApp app) {

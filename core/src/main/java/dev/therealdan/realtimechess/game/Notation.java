@@ -14,12 +14,30 @@ public class Notation {
         this.to = position.copy();
     }
 
+    public Notation(Piece pawn, Piece.Type promoteTo) {
+        this.notation = pawn.getPosition().getNotation() + promoteTo.getNotation();
+
+        this.type = promoteTo;
+        this.from = pawn.getPosition().copy();
+        this.to = pawn.getPosition().copy();
+    }
+
     public Notation(String notation) {
         this.notation = notation;
 
-        this.type = Piece.Type.byNotation(notation.substring(0, 1));
-        this.from = Position.byNotation(notation.substring(1, 3));
-        this.to = Position.byNotation(notation.substring(3, 5));
+        if (notation.length() == 3) {
+            this.type = Piece.Type.byNotation(notation.substring(2, 3));
+            this.from = Position.byNotation(notation.substring(0, 2));
+            this.to = Position.byNotation(notation.substring(0, 2));
+        } else {
+            this.type = Piece.Type.byNotation(notation.substring(0, 1));
+            this.from = Position.byNotation(notation.substring(1, 3));
+            this.to = Position.byNotation(notation.substring(3, 5));
+        }
+    }
+
+    public boolean isPromotion() {
+        return getNotation().length() == 3;
     }
 
     public String getNotation() {

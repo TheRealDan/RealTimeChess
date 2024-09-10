@@ -124,7 +124,16 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
         if (instance.getBoard().getPromoting() != null && instance.getBoard().getPromoting().getColour().equals(instance.getColour())) {
+            Notation notation = new Notation(instance.getBoard().getPromoting(), instance.getPromotion());
             instance.getBoard().promote(instance.getBoard().getPromoting(), instance.getPromotion());
+            if (instance.getClient() != null || instance.getConnected() != null) {
+                Socket socket = instance.getClient() != null ? instance.getClient() : instance.getConnected();
+                try {
+                    socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
+                } catch (IOException e) {
+                    Gdx.app.log(instance.getClient() != null ? "Client" : "Server", "Error", e);
+                }
+            }
             return false;
         }
 
