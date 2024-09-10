@@ -133,10 +133,21 @@ public class Piece {
             return equals(BLACK) ? Color.BLACK : Color.WHITE;
         }
 
+        public String getNotation() {
+            return equals(BLACK) ? "B" : "W";
+        }
+
         public Texture getTexture() {
             if (!textures.containsKey(toString()))
                 textures.put(toString(), new Texture("images/board/" + toString().toLowerCase() + ".png"));
             return textures.get(toString());
+        }
+
+        public static Colour byNotation(String notation) {
+            for (Colour colour : Colour.values())
+                if (colour.getNotation().equals(notation))
+                    return colour;
+            return null;
         }
     }
 }

@@ -72,11 +72,29 @@ public class GameInstance {
 
     private void incoming(Notation notation) {
         Piece piece = getBoard().byPosition(notation.getFrom());
-        if (notation.isPromotion()) {
+        if (notation.isBoard()) {
+            getBoard().getPieces().clear();
+            for (String string : notation.getNotation().split(",")) {
+                getBoard().getPieces().add(new Piece(
+                    Piece.Type.byNotation(string.substring(1, 2)),
+                    Piece.Colour.byNotation(string.substring(0, 1)),
+                    Position.byNotation(string.substring(2, 4))
+                ));
+            }
+        } else if (notation.isPromotion()) {
             if (piece == null || !piece.getType().equals(Piece.Type.PAWN) || piece.getColour().equals(getColour())) return;
             getBoard().promote(piece, notation.getType());
         } else {
-            if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) return;
+            if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) {
+                if (getServer() != null) {
+                    try {
+                        getConnected().getOutputStream().write((new Notation(getBoard()).getNotation() + "\n").getBytes());
+                    } catch (IOException e) {
+                        Gdx.app.log("Server", "Error", e);
+                    }
+                }
+                return;
+            }
             getBoard().moveTo(piece, notation.getTo());
         }
     }

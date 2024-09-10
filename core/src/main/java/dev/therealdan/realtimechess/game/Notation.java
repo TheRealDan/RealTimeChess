@@ -22,8 +22,21 @@ public class Notation {
         this.to = pawn.getPosition().copy();
     }
 
+    public Notation(Board board) {
+        StringBuilder builder = new StringBuilder();
+        for (Piece piece : board.getPieces()) {
+            builder.append(",");
+            builder.append(piece.getColour().getNotation());
+            builder.append(piece.getType().getNotation());
+            builder.append(piece.getPosition().getNotation());
+        }
+        this.notation = builder.toString().replaceFirst(",", "");
+    }
+
     public Notation(String notation) {
         this.notation = notation;
+
+        if (notation.startsWith("B") || notation.startsWith("W")) return;
 
         if (notation.length() == 3) {
             this.type = Piece.Type.byNotation(notation.substring(2, 3));
@@ -34,6 +47,10 @@ public class Notation {
             this.from = Position.byNotation(notation.substring(1, 3));
             this.to = Position.byNotation(notation.substring(3, 5));
         }
+    }
+
+    public boolean isBoard() {
+        return type == null;
     }
 
     public boolean isPromotion() {
