@@ -2,21 +2,76 @@ package dev.therealdan.realtimechess.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.net.ServerSocket;
+import com.badlogic.gdx.net.Socket;
+import com.badlogic.gdx.net.SocketHints;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class GameInstance {
 
     private Board board;
     private Bot bot;
+    private ServerSocket server;
+    private Socket client, connected;
     private Piece.Colour colour;
 
     private Piece.Type promotion = Piece.Type.QUEEN;
 
-    public GameInstance(Bot.Difficulty difficulty, Piece.Colour colour) {
+    public GameInstance(Bot.Difficulty difficulty, ServerSocket server, Socket client, Piece.Colour colour) {
         board = Board.standardBoard();
-        bot = new Bot(difficulty, colour.opposite());
+        if (difficulty != null) bot = new Bot(difficulty, colour.opposite());
+        this.server = server;
+        this.client = client;
         this.colour = colour;
+
+        if (getServer() != null) {
+            serverConnectToClient();
+        } else if (getClient() != null) {
+            clientConnectToServer();
+        }
+    }
+
+    private void serverConnectToClient() {
+        new Thread(() -> {
+            connected = getServer().accept(new SocketHints());
+            try {
+                connected.getOutputStream().write((getColour().opposite().toString() + "\n").getBytes());
+            } catch (IOException e) {
+                Gdx.app.log("Server", "Error", e);
+            }
+            while (true) {
+                try {
+                    String incoming = new BufferedReader(new InputStreamReader(connected.getInputStream())).readLine();
+                    incoming(new Notation(incoming));
+                } catch (IOException e) {
+                    Gdx.app.log("Server", "Error", e);
+                }
+            }
+        }).start();
+    }
+
+    private void clientConnectToServer() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    String incoming = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
+                    incoming(new Notation(incoming));
+                } catch (IOException e) {
+                    Gdx.app.log("Client", "Error", e);
+                }
+            }
+        }).start();
+    }
+
+    private void incoming(Notation notation) {
+        Piece piece = getBoard().byPosition(notation.getFrom());
+        if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) return;
+        getBoard().moveTo(piece, notation.getTo());
     }
 
     public void render(RealTimeChessApp app) {
@@ -24,7 +79,6 @@ public class GameInstance {
         float x = -width / 2f;
         float y = -height / 2f;
         getBoard().render(app, x, y, width, height);
-        getBot().think(getBoard());
 
         Piece piece = getBoard().getPromoting();
         if (piece != null && piece.getColour().equals(getColour())) {
@@ -53,6 +107,18 @@ public class GameInstance {
 
     public Bot getBot() {
         return bot;
+    }
+
+    public ServerSocket getServer() {
+        return server;
+    }
+
+    public Socket getClient() {
+        return client;
+    }
+
+    public Socket getConnected() {
+        return connected;
     }
 
     public Piece.Colour getColour() {

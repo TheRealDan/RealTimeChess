@@ -110,4 +110,8 @@ public class Position {
     public Position copy() {
         return new Position(letter, number);
     }
+
+    public static Position byNotation(String notation) {
+        return new Position(notation.substring(0, 1), Integer.parseInt(notation.substring(1, 2)));
+    }
 }

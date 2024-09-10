@@ -29,7 +29,7 @@ public class FontManager implements Disposable {
     public void draw(SpriteBatch batch, String text, float x, float y, int fontSize, Color color) {
         BitmapFont font = getFont(fontSize);
         font.setColor(color);
-        font.draw(batch, text, x, y);
+        font.draw(batch, text, x, y + font.getCapHeight() / 2f);
     }
 
     public void draw(SpriteBatch batch, String text, float x, float y, float width, int fontSize, Color color) {
@@ -41,7 +41,11 @@ public class FontManager implements Disposable {
     public void center(SpriteBatch batch, String text, float x, float y, int fontSize, Color color) {
         BitmapFont font = getFont(fontSize);
         font.setColor(color);
-        font.draw(batch, text, x, y + font.getCapHeight()/2f, 0, Align.center, false);
+        font.draw(batch, text, x, y + font.getCapHeight() / 2f, 0, Align.center, false);
+    }
+
+    public float getWidth(SpriteBatch batch, String text, int fontSize) {
+        return getFont(fontSize).draw(batch, text, Gdx.graphics.getWidth(), 0).width;
     }
 
     @Override

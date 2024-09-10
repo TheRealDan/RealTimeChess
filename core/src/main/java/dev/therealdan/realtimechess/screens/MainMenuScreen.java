@@ -1,6 +1,7 @@
 package dev.therealdan.realtimechess.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -25,10 +26,12 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private OrthographicCamera camera;
 
     private Option hovering = null;
-    private Option menu = null;
+    private Option menu = Option.MAIN;
     private Bot.Difficulty previousDifficulty = null;
     private Bot.Difficulty difficulty = null;
     private float textureXOffset = 0;
+    private String host = "";
+    private boolean editHost = false;
 
     public MainMenuScreen(RealTimeChessApp app) {
         this.app = app;
@@ -56,28 +59,24 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
         y -= height;
 
-        if (menu == null) {
-            renderMenu(y, oheight);
-        } else {
-            switch (menu) {
-                case BOTS:
-                    renderBots(delta, y, oheight);
-                    break;
-                case SETTINGS:
-                    app.settings.render(app, y, oheight);
-                    break;
-            }
+        switch (menu) {
+            default:
+                renderMenu(y, oheight);
+                break;
+            case BOTS:
+                renderBots(delta, y, oheight);
+                break;
+            case SETTINGS:
+                app.settings.render(app, y, oheight);
+                break;
         }
     }
 
     private void renderMenu(float oy, float oheight) {
-        List<Option> options = new ArrayList<>();
-        options.add(Option.BOTS);
-        options.add(Option.SETTINGS);
-        options.add(Option.QUIT);
+        List<Option> options = menu.getOptions();
 
-        float spacing = Gdx.graphics.getHeight() / 25f;
-        float width = Gdx.graphics.getWidth() * 0.4f;
+        float ospacing = Gdx.graphics.getHeight() / 25f, spacing = ospacing;
+        float owidth = Gdx.graphics.getWidth() * 0.4f, width = owidth;
         float height = Math.min(oheight / options.size() - spacing, 80f);
         float theight = (height + spacing) * options.size();
         float x = -width / 2f;
@@ -88,7 +87,18 @@ public class MainMenuScreen implements Screen, InputProcessor {
             if (Mouse.containsMouse(x, y, width, height)) hovering = option;
             app.batch.setColor(Color.WHITE);
             app.batch.draw(option.equals(hovering) ? app.textures.brown : app.textures.firebrick, x, y, width, height);
-            app.font.center(app.batch, option.getName(), x + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
+
+            if (option.equals(Option.HOSTNAME)) {
+                app.font.draw(app.batch, "IP ADDRESS", x + height / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
+                spacing = 5f;
+                width = owidth - height - app.font.getWidth(app.batch, "IP ADDRESS", (int) (16f * app.font.scale));
+                app.batch.draw(app.textures.white, x + (owidth - width), y + spacing, width - spacing, height - spacing * 2f);
+                app.font.center(app.batch, host + (editHost && System.currentTimeMillis() % 1500 > 750 ? "|" : ""), x + (owidth - width) + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.BLACK);
+                spacing = ospacing;
+                width = owidth;
+            } else {
+                app.font.center(app.batch, option.getName(), x + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
+            }
             y -= height + spacing;
         }
     }
@@ -148,11 +158,13 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     private void next() {
-        difficulty = difficulty.equals(Bot.Difficulty.values()[Bot.Difficulty.values().length - 1]) ? Bot.Difficulty.values()[0] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) + 1];
+        if (Option.BOTS.equals(menu))
+            difficulty = difficulty.equals(Bot.Difficulty.values()[Bot.Difficulty.values().length - 1]) ? Bot.Difficulty.values()[0] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) + 1];
     }
 
     private void previous() {
-        difficulty = difficulty.equals(Bot.Difficulty.values()[0]) ? Bot.Difficulty.values()[Bot.Difficulty.values().length - 1] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) - 1];
+        if (Option.BOTS.equals(menu))
+            difficulty = difficulty.equals(Bot.Difficulty.values()[0]) ? Bot.Difficulty.values()[Bot.Difficulty.values().length - 1] : Bot.Difficulty.values()[Arrays.stream(Bot.Difficulty.values()).collect(Collectors.toList()).indexOf(difficulty) - 1];
     }
 
     @Override
@@ -183,10 +195,39 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int i) {
+        if (Option.SETTINGS.equals(menu)) {
+            if (app.settings.keyDown(i)) {
+                menu = Option.MAIN;
+            }
+            return false;
+        } else if (Option.JOIN.equals(menu)) {
+            switch (i) {
+                default:
+                    String key = Input.Keys.toString(i);
+                    if (!"1234567890.".contains(key)) return false;
+                    host += key;
+                    return false;
+                case 111:
+                    if (editHost) {
+                        editHost = false;
+                        return false;
+                    }
+                    menu = Option.ONLINE;
+                    return false;
+                case 66:
+                    editHost = false;
+                    return false;
+                case 67:
+                    if (!host.isEmpty())
+                        host = host.substring(0, host.length() - 1);
+                    return false;
+            }
+        }
+
         switch (i) {
             case 111:
                 hovering = null;
-                menu = null;
+                menu = Option.MAIN;
                 previousDifficulty = null;
                 difficulty = null;
                 break;
@@ -214,9 +255,10 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        editHost = false;
         if (Option.SETTINGS.equals(menu)) {
             if (app.settings.touchDown()) {
-                menu = null;
+                menu = Option.MAIN;
             }
             return false;
         }
@@ -226,8 +268,20 @@ public class MainMenuScreen implements Screen, InputProcessor {
                 default:
                     menu = hovering;
                     return false;
+                case BACK:
+                    menu = menu.getPrevious();
+                    return false;
                 case PLAY:
                     app.setScreen(new GameScreen(app, difficulty, app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
+                    return false;
+                case HOST:
+                    app.setScreen(new GameScreen(app, (int) app.settings.getNumber(Settings.Setting.PORT), app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
+                    return false;
+                case HOSTNAME:
+                    editHost = true;
+                    return false;
+                case JOIN_START:
+                    app.setScreen(new GameScreen(app, host, (int) app.settings.getNumber(Settings.Setting.PORT)));
                     return false;
                 case PREVIOUS:
                     previous();
@@ -270,11 +324,21 @@ public class MainMenuScreen implements Screen, InputProcessor {
 
     public enum Option {
         MAIN,
-        BOTS, SETTINGS, QUIT,
-        PLAY, PREVIOUS, NEXT;
+        BOTS, ONLINE, SETTINGS, QUIT,
+        BACK, PLAY, PREVIOUS, NEXT,
+        HOSTNAME, HOST, JOIN, JOIN_START;
 
         public String getName() {
-            return toString();
+            switch (this) {
+                default:
+                    return toString();
+                case BOTS:
+                    return "VERSUS BOTS";
+                case ONLINE:
+                    return "MULTIPLAYER";
+                case JOIN_START:
+                    return "JOIN";
+            }
         }
 
         public String getTitle() {
@@ -283,8 +347,34 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     return "Real Time Chess";
                 case BOTS:
                     return "Choose your opponent";
+                case ONLINE:
+                    return "Online Multiplayer";
+                case JOIN:
+                    return "Enter host IP address to connect to";
                 case SETTINGS:
                     return "Settings";
+            }
+        }
+
+        public Option getPrevious() {
+            switch (this) {
+                default:
+                    return MAIN;
+                case JOIN:
+                    return ONLINE;
+            }
+        }
+
+        public List<Option> getOptions() {
+            switch (this) {
+                default:
+                    return new ArrayList<>();
+                case MAIN:
+                    return Arrays.stream(new Option[]{BOTS, ONLINE, SETTINGS, QUIT}).collect(Collectors.toList());
+                case ONLINE:
+                    return Arrays.stream(new Option[]{HOST, JOIN, BACK}).collect(Collectors.toList());
+                case JOIN:
+                    return Arrays.stream(new Option[]{HOSTNAME, JOIN_START, BACK}).collect(Collectors.toList());
             }
         }
     }

@@ -104,6 +104,7 @@ public class Piece {
         PAWN, ROOK, KNIGHT, BISHOP, KING, QUEEN;
 
         public String getNotation() {
+            if (equals(KNIGHT)) return "N";
             return toString().substring(0, 1);
         }
 
@@ -111,6 +112,13 @@ public class Piece {
             if (!textures.containsKey(toString()))
                 textures.put(toString(), new Texture("images/pieces/" + toString().toLowerCase() + ".png"));
             return textures.get(toString());
+        }
+
+        public static Type byNotation(String notation) {
+            for (Type type : Type.values())
+                if (type.getNotation().equals(notation))
+                    return type;
+            return null;
         }
     }
 

@@ -2,13 +2,20 @@ package dev.therealdan.realtimechess.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.net.ServerSocket;
+import com.badlogic.gdx.net.ServerSocketHints;
+import com.badlogic.gdx.net.Socket;
+import com.badlogic.gdx.net.SocketHints;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import dev.therealdan.realtimechess.game.Bot;
-import dev.therealdan.realtimechess.game.GameInstance;
-import dev.therealdan.realtimechess.game.Piece;
+import dev.therealdan.realtimechess.game.*;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class GameScreen implements Screen, InputProcessor {
 
@@ -20,12 +27,37 @@ public class GameScreen implements Screen, InputProcessor {
     private GameInstance instance;
 
     public GameScreen(RealTimeChessApp app, Bot.Difficulty difficulty, Piece.Colour colour) {
-        this.app = app;
+        this(app);
+        instance = new GameInstance(difficulty, null, null, colour);
+    }
 
+    public GameScreen(RealTimeChessApp app, int port, Piece.Colour colour) {
+        this(app);
+        ServerSocketHints hints = new ServerSocketHints();
+        hints.acceptTimeout = 0;
+        ServerSocket server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, hints);
+        instance = new GameInstance(null, server, null, colour);
+    }
+
+    public GameScreen(RealTimeChessApp app, String host, int port) {
+        this(app);
+        Socket client = Gdx.net.newClientSocket(Net.Protocol.TCP, host, port, new SocketHints());
+        Piece.Colour colour;
+        try {
+            String incoming = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
+            colour = Piece.Colour.valueOf(incoming);
+        } catch (IOException e) {
+            Gdx.app.log("Client", "Error", e);
+            return;
+        }
+        ;
+        instance = new GameInstance(null, null, client, colour);
+    }
+
+    public GameScreen(RealTimeChessApp app) {
+        this.app = app;
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
-
-        instance = new GameInstance(difficulty, colour);
     }
 
     @Override
@@ -39,6 +71,7 @@ public class GameScreen implements Screen, InputProcessor {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
+        if (instance.getBot() != null) instance.getBot().think(instance.getBoard());
         instance.render(app);
     }
 
@@ -97,7 +130,7 @@ public class GameScreen implements Screen, InputProcessor {
 
         if (instance.getBoard().getHovering() != null) {
             Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
-            if (piece != null && (piece.getColour().equals(instance.getColour()) || instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))) {
+            if (piece != null && (piece.getColour().equals(instance.getColour()) || (instance.getBot() != null && instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS)))) {
                 if (piece.isOnCooldown()) return false;
                 if (instance.getBoard().isChecked(instance.getColour()) && instance.getBoard().getPossibleMoves(piece).isEmpty()) return false;
                 instance.getBoard().select(piece);
@@ -109,8 +142,21 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchUp(int i, int i1, int i2, int i3) {
-        if (instance.getBoard().isHolding())
-            instance.getBoard().moveTo(instance.getBoard().getSelected(), instance.getBoard().getHovering());
+        if (instance.getBoard().isHolding()) {
+            Piece piece = instance.getBoard().getSelected();
+            Position position = instance.getBoard().getHovering();
+            Notation notation = new Notation(piece, position);
+            if (instance.getBoard().moveTo(piece, position)) {
+                if (instance.getClient() != null || instance.getConnected() != null) {
+                    Socket socket = instance.getClient() != null ? instance.getClient() : instance.getConnected();
+                    try {
+                        socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
+                    } catch (IOException e) {
+                        Gdx.app.log(instance.getClient() != null ? "Client" : "Server", "Error", e);
+                    }
+                }
+            }
+        }
         instance.getBoard().setHolding(false);
         return false;
     }

@@ -68,14 +68,14 @@ public class Board {
             getSelected().render(app, Mouse.getX() - cell / 2f, Mouse.getY() - cell / 2f, cell);
     }
 
-    public Piece moveTo(Piece piece, Position position) {
-        if (getPromoting() != null) return null;
-        if (piece == null || position == null) return null;
+    public boolean moveTo(Piece piece, Position position) {
+        if (getPromoting() != null) return false;
+        if (piece == null || position == null) return false;
         Piece captured = byPosition(position);
-        if (captured != null && captured.getColour().equals(piece.getColour())) return null;
+        if (captured != null && captured.getColour().equals(piece.getColour())) return false;
 
-        if (piece.isOnCooldown()) return null;
-        if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return null;
+        if (piece.isOnCooldown()) return false;
+        if (!getPossibleMoves(piece).stream().anyMatch(move -> move.equals(position))) return false;
 
         if (!simulation) {
             Board simulation = copy();
@@ -84,7 +84,7 @@ public class Board {
             simulation.getPieces().remove(simulation.byPosition(position));
             if (pieceSim != null) {
                 pieceSim.getPosition().set(position);
-                if (simulation.isChecked(piece.getColour())) return null;
+                if (simulation.isChecked(piece.getColour())) return false;
             }
         }
 
@@ -124,7 +124,7 @@ public class Board {
         piece.getPosition().set(position);
         if (captured != null)
             getPieces().remove(captured);
-        return captured;
+        return true;
     }
 
     public void setHovering(Position position) {
