@@ -1,0 +1,13 @@
+{
+    "platform": "windows64",
+    "jdk": "https://download.therealdan.dev/java/OpenJDK22U-jre_x64_windows_hotspot_22.0.2_9.zip",
+    "executable": "RealTimeChess",
+    "classpath": [
+        "RealTimeChess.jar"
+    ],
+    "mainclass": "dev.therealdan.realtimechess.lwjgl3.Lwjgl3Launcher",
+    "vmargs": [
+       "Xmx1G"
+    ],
+    "output": "app"
+}
