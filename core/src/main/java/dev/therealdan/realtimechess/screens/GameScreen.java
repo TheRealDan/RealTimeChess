@@ -94,11 +94,14 @@ public class GameScreen implements Screen, InputProcessor {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        dispose();
     }
 
     @Override
     public void dispose() {
-        // Destroy screen's assets here.
+        if (instance.getServer() != null) instance.getServer().dispose();
+        if (instance.getClient() != null) instance.getClient().dispose();
+        if (instance.getConnected() != null) instance.getConnected().dispose();
     }
 
     @Override
