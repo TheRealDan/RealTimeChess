@@ -8,6 +8,7 @@ import dev.therealdan.realtimechess.game.Piece;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.UUID;
 
 public class Settings {
 
@@ -18,6 +19,8 @@ public class Settings {
     private Setting editing;
 
     public Settings(Preferences preferences) {
+        setString(Setting.USER, preferences.getString("settings.user", UUID.randomUUID().toString().replace("-", "")));
+        setString(Setting.USERNAME, preferences.getString("settings.username", "User " + getString(Setting.USER).substring(0, 4)));
         setToggle(Setting.PREFERENCE, preferences.getBoolean("settings.preference", true));
         setNumber(Setting.PORT, preferences.getLong("settings.port", 42000));
         setString(Setting.IP_ADDRESS, preferences.getString("settings.address", ""));
@@ -120,6 +123,8 @@ public class Settings {
     }
 
     public void save(Preferences preferences) {
+        preferences.putString("settings.user", getString(Setting.USER));
+        preferences.putString("settings.username", getString(Setting.USERNAME));
         preferences.putBoolean("settings.preference", getToggle(Setting.PREFERENCE));
         preferences.putLong("settings.port", getNumber(Setting.PORT));
         preferences.putString("settings.address", getString(Setting.IP_ADDRESS));
@@ -155,6 +160,7 @@ public class Settings {
     }
 
     public enum Setting {
+        USER, USERNAME,
         PREFERENCE, PORT, IP_ADDRESS,
         BACK;
 
@@ -162,6 +168,9 @@ public class Settings {
             switch (this) {
                 default:
                     return Type.BACK;
+                case USER:
+                case USERNAME:
+                    return Type.STRING;
                 case PREFERENCE:
                     return Type.TOGGLE;
                 case PORT:
@@ -179,6 +188,7 @@ public class Settings {
             switch (this) {
                 default:
                     return true;
+                case USER:
                 case IP_ADDRESS:
                     return false;
             }
