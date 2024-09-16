@@ -31,6 +31,7 @@ public class BotsScreen extends GameScreen {
 
     @Override
     public boolean canMove(Piece piece) {
+        if (piece == null) return false;
         if (getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS)) {
             piece = piece.copy();
             piece.setColour(getColour());
