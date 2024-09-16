@@ -97,7 +97,7 @@ public class MainMenuScreen extends AScreen {
         x += spacing / 2f;
         y += height - spacing / 2f;
         app.font.draw(app.batch, difficulty.getName() + " " + difficulty.getDifficulty(), x, y, (int) (20f * app.font.scale), Color.WHITE);
-        y -= spacing * 2f;
+        y -= app.font.getHeight(app.batch, difficulty.getName(), (int) (20f * app.font.scale)) + spacing;
         app.font.draw(app.batch, difficulty.getDescription(), x, y, width - spacing, (int) (12f * app.font.scale), Color.WHITE);
 
         if (Mouse.containsMouse(buttonX, buttonY, buttonWidth, buttonHeight)) hovering = Option.PLAY;

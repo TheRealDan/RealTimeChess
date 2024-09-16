@@ -55,9 +55,9 @@ public class Settings {
                     if (Mouse.containsMouse(x, y, width, height)) hovering = setting;
                     app.batch.setColor(Color.WHITE);
                     app.batch.draw(Mouse.containsMouse(x, y, width, height) ? app.textures.brown : app.textures.firebrick, x, y, width, height);
-                    app.font.draw(app.batch, setting.getName(), x + height / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
                     spacing = 5f;
                     width = owidth - height - app.font.getWidth(app.batch, setting.getName(), (int) (16f * app.font.scale));
+                    app.font.center(app.batch, setting.getName(), x + (owidth - width) / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.WHITE);
                     app.batch.draw(app.textures.white, x + (owidth - width), y + spacing, width - spacing, height - spacing * 2f);
                     app.font.center(app.batch, getString(setting) + (setting.equals(editing) && System.currentTimeMillis() % 1500 > 750 ? "|" : ""), x + (owidth - width) + width / 2f, y + height / 2f, (int) (16f * app.font.scale), Color.BLACK);
                     spacing = ospacing;
