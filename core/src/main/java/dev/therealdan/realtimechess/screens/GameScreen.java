@@ -157,17 +157,7 @@ public class GameScreen implements Screen, InputProcessor {
         if (instance.getBoard().isHolding()) {
             Piece piece = instance.getBoard().getSelected();
             Position position = instance.getBoard().getHovering();
-            Notation notation = new Notation(piece, position);
-            if (instance.getBoard().moveTo(piece, position)) {
-                if (instance.getClient() != null || instance.getConnected() != null) {
-                    Socket socket = instance.getClient() != null ? instance.getClient() : instance.getConnected();
-                    try {
-                        socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
-                    } catch (IOException e) {
-                        Gdx.app.log(instance.getClient() != null ? "Client" : "Server", "Error", e);
-                    }
-                }
-            }
+            instance.moveTo(piece, position);
         }
         instance.getBoard().setHolding(false);
         return false;

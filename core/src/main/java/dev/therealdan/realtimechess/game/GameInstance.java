@@ -127,6 +127,20 @@ public class GameInstance {
         }
     }
 
+    public void moveTo(Piece piece, Position position) {
+        Notation notation = new Notation(piece, position);
+        if (getBoard().moveTo(piece, position)) {
+            if (getClient() != null || getConnected() != null) {
+                Socket socket = getClient() != null ? getClient() : getConnected();
+                try {
+                    socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
+                } catch (IOException e) {
+                    Gdx.app.log(getClient() != null ? "Client" : "Server", "Error", e);
+                }
+            }
+        }
+    }
+
     public Board getBoard() {
         return board;
     }
