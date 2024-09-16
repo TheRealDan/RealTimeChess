@@ -1,11 +1,7 @@
 package dev.therealdan.realtimechess.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Board;
 import dev.therealdan.realtimechess.game.Piece;
 import dev.therealdan.realtimechess.game.Position;
@@ -18,12 +14,7 @@ import dev.therealdan.realtimechess.network.packets.BoardPacket;
 import dev.therealdan.realtimechess.network.packets.MovePacket;
 import dev.therealdan.realtimechess.network.packets.PromotionPacket;
 
-public abstract class GameScreen implements Screen, InputProcessor {
-
-    final RealTimeChessApp app;
-
-    private ScreenViewport viewport;
-    private OrthographicCamera camera;
+public abstract class GameScreen extends AScreen {
 
     protected Piece.Colour colour;
     protected Board board;
@@ -31,9 +22,7 @@ public abstract class GameScreen implements Screen, InputProcessor {
     private Piece.Type promotion = Piece.Type.QUEEN;
 
     public GameScreen(RealTimeChessApp app) {
-        this.app = app;
-        camera = new OrthographicCamera();
-        viewport = new ScreenViewport(camera);
+        super(app);
     }
 
     public void incoming(String data) {
@@ -92,11 +81,6 @@ public abstract class GameScreen implements Screen, InputProcessor {
     }
 
     @Override
-    public void show() {
-        Gdx.input.setInputProcessor(this);
-    }
-
-    @Override
     public void render(float delta) {
         camera.update();
         app.shapeRenderer.setProjectionMatrix(camera.combined);
@@ -128,30 +112,6 @@ public abstract class GameScreen implements Screen, InputProcessor {
                 y -= cell;
             }
         }
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height);
-        app.font.scale = Gdx.graphics.getWidth() / 1000f;
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
-        Gdx.input.setInputProcessor(null);
-        dispose();
-    }
-
-    @Override
-    public void dispose() {
     }
 
     public boolean hasGameStarted() {
@@ -199,16 +159,6 @@ public abstract class GameScreen implements Screen, InputProcessor {
     }
 
     @Override
-    public boolean keyUp(int i) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char c) {
-        return false;
-    }
-
-    @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
         if (hasGameStarted()) {
             if (getBoard().getPromoting() != null && getBoard().getPromoting().getColour().equals(getColour())) {
@@ -237,26 +187,6 @@ public abstract class GameScreen implements Screen, InputProcessor {
             moveTo(piece, position);
         }
         getBoard().setHolding(false);
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int i, int i1, int i2) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int i, int i1) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float v, float v1) {
         return false;
     }
 }

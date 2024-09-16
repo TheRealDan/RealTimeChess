@@ -2,11 +2,7 @@ package dev.therealdan.realtimechess.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Bot;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
@@ -20,12 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MainMenuScreen implements Screen, InputProcessor {
-
-    final RealTimeChessApp app;
-
-    private ScreenViewport viewport;
-    private OrthographicCamera camera;
+public class MainMenuScreen extends AScreen {
 
     private Option hovering = null;
     private Option menu = Option.MAIN;
@@ -35,42 +26,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
     private boolean editHost = false;
 
     public MainMenuScreen(RealTimeChessApp app) {
-        this.app = app;
-
-        camera = new OrthographicCamera();
-        viewport = new ScreenViewport(camera);
-    }
-
-    @Override
-    public void show() {
-        Gdx.input.setInputProcessor(this);
-    }
-
-    @Override
-    public void render(float delta) {
-        camera.update();
-        app.shapeRenderer.setProjectionMatrix(camera.combined);
-        app.batch.setProjectionMatrix(camera.combined);
-
-        float oheight = Gdx.graphics.getHeight() * 0.8f;
-        float height = Gdx.graphics.getHeight() - oheight;
-        float y = Gdx.graphics.getHeight() / 2f;
-
-        app.font.center(app.batch, (menu != null ? menu : Option.MAIN).getTitle(), 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
-
-        y -= height;
-
-        switch (menu) {
-            default:
-                renderMenu(y, oheight);
-                break;
-            case BOTS:
-                renderBots(delta, y, oheight);
-                break;
-            case SETTINGS:
-                app.settings.render(app, y, oheight);
-                break;
-        }
+        super(app);
     }
 
     private void renderMenu(float oy, float oheight) {
@@ -169,29 +125,30 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height);
-        app.font.scale = Gdx.graphics.getWidth() / 1000f;
-    }
+    public void render(float delta) {
+        camera.update();
+        app.shapeRenderer.setProjectionMatrix(camera.combined);
+        app.batch.setProjectionMatrix(camera.combined);
 
-    @Override
-    public void pause() {
+        float oheight = Gdx.graphics.getHeight() * 0.8f;
+        float height = Gdx.graphics.getHeight() - oheight;
+        float y = Gdx.graphics.getHeight() / 2f;
 
-    }
+        app.font.center(app.batch, (menu != null ? menu : Option.MAIN).getTitle(), 0, y - height / 2f, (int) (40f * app.font.scale), Color.WHITE);
 
-    @Override
-    public void resume() {
+        y -= height;
 
-    }
-
-    @Override
-    public void hide() {
-        Gdx.input.setInputProcessor(null);
-    }
-
-    @Override
-    public void dispose() {
-
+        switch (menu) {
+            default:
+                renderMenu(y, oheight);
+                break;
+            case BOTS:
+                renderBots(delta, y, oheight);
+                break;
+            case SETTINGS:
+                app.settings.render(app, y, oheight);
+                break;
+        }
     }
 
     @Override
@@ -245,16 +202,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
     }
 
     @Override
-    public boolean keyUp(int i) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char c) {
-        return false;
-    }
-
-    @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
         editHost = false;
         if (Option.SETTINGS.equals(menu)) {
@@ -295,31 +242,6 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     return false;
             }
         }
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int i, int i1, int i2, int i3) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int i, int i1, int i2) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int i, int i1) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(float v, float v1) {
         return false;
     }
 
