@@ -28,6 +28,18 @@ public class Client implements DevicePeer {
         }
     }
 
+    public InputStream getInputStream() {
+        return socket.getInputStream();
+    }
+
+    public OutputStream getOutputStream() {
+        return socket.getOutputStream();
+    }
+
+    public boolean isConnected() {
+        return socket.isConnected();
+    }
+
     @Override
     public void dispose() {
         socket.dispose();
@@ -39,19 +51,7 @@ public class Client implements DevicePeer {
     }
 
     @Override
-    public String getName() {
-        return "Client";
-    }
-
-    public InputStream getInputStream() {
-        return socket.getInputStream();
-    }
-
-    public OutputStream getOutputStream() {
-        return socket.getOutputStream();
-    }
-
-    public boolean isConnected() {
-        return socket.isConnected();
+    public Type getType() {
+        return Type.CLIENT;
     }
 }

@@ -20,6 +20,10 @@ public class Server implements DevicePeer {
         this.serverSocket = Gdx.net.newServerSocket(Net.Protocol.TCP, port, hints);
     }
 
+    public void accept() {
+        socket = serverSocket.accept(new SocketHints());
+    }
+
     @Override
     public void send(Packet packet) {
         if (getSocket() == null) return;
@@ -37,17 +41,13 @@ public class Server implements DevicePeer {
         socket.dispose();
     }
 
-    public void accept() {
-        socket = serverSocket.accept(new SocketHints());
-    }
-
     @Override
     public Socket getSocket() {
         return socket;
     }
 
     @Override
-    public String getName() {
-        return "Server";
+    public Type getType() {
+        return Type.SERVER;
     }
 }

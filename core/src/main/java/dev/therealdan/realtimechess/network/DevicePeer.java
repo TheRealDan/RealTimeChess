@@ -9,5 +9,14 @@ public interface DevicePeer extends Disposable {
 
     Socket getSocket();
 
-    String getName();
+    default String getName() {
+        return getType().toString().substring(0, 1) + getType().toString().substring(1).toLowerCase();
+    }
+
+    Type getType();
+
+    enum Type {
+        CLIENT, SERVER,
+        OFFLINE
+    }
 }

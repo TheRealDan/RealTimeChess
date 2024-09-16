@@ -8,10 +8,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.Bot;
-import dev.therealdan.realtimechess.game.Piece;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
 import dev.therealdan.realtimechess.main.Settings;
+import dev.therealdan.realtimechess.screens.game.BotsScreen;
+import dev.therealdan.realtimechess.screens.game.ClientScreen;
+import dev.therealdan.realtimechess.screens.game.ServerScreen;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -271,16 +273,16 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     menu = menu.getPrevious();
                     return false;
                 case PLAY:
-                    app.setScreen(new GameScreen(app, difficulty, app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
+                    app.setScreen(new BotsScreen(app, difficulty));
                     return false;
                 case HOST:
-                    app.setScreen(new GameScreen(app, (int) app.settings.getNumber(Settings.Setting.PORT), app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
+                    app.setScreen(new ServerScreen(app));
                     return false;
                 case HOSTNAME:
                     editHost = true;
                     return false;
                 case JOIN_START:
-                    app.setScreen(new GameScreen(app, app.settings.getString(Settings.Setting.IP_ADDRESS), (int) app.settings.getNumber(Settings.Setting.PORT), app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
+                    app.setScreen(new ClientScreen(app));
                     return false;
                 case PREVIOUS:
                     previous();

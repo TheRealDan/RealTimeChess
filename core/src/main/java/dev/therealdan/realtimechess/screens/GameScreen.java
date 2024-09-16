@@ -3,45 +3,92 @@ package dev.therealdan.realtimechess.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import dev.therealdan.realtimechess.game.Bot;
-import dev.therealdan.realtimechess.game.GameInstance;
+import dev.therealdan.realtimechess.game.Board;
 import dev.therealdan.realtimechess.game.Piece;
 import dev.therealdan.realtimechess.game.Position;
+import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
-import dev.therealdan.realtimechess.network.Client;
-import dev.therealdan.realtimechess.network.Server;
+import dev.therealdan.realtimechess.network.DevicePeer;
+import dev.therealdan.realtimechess.network.Packet;
+import dev.therealdan.realtimechess.network.packets.AssignmentPacket;
+import dev.therealdan.realtimechess.network.packets.BoardPacket;
+import dev.therealdan.realtimechess.network.packets.MovePacket;
 import dev.therealdan.realtimechess.network.packets.PromotionPacket;
 
-public class GameScreen implements Screen, InputProcessor {
+public abstract class GameScreen implements Screen, InputProcessor {
 
     final RealTimeChessApp app;
 
     private ScreenViewport viewport;
     private OrthographicCamera camera;
 
-    private GameInstance instance;
+    protected Piece.Colour colour;
+    protected Board board;
 
-    public GameScreen(RealTimeChessApp app, Bot.Difficulty difficulty, Piece.Colour colour) {
-        this(app);
-        instance = new GameInstance(difficulty, null, null, colour);
-    }
-
-    public GameScreen(RealTimeChessApp app, int port, Piece.Colour colour) {
-        this(app);
-        instance = new GameInstance(null, new Server(port), null, colour);
-    }
-
-    public GameScreen(RealTimeChessApp app, String host, int port, Piece.Colour preference) {
-        this(app);
-        instance = new GameInstance(null, null, new Client(host, port), preference);
-    }
+    private Piece.Type promotion = Piece.Type.QUEEN;
 
     public GameScreen(RealTimeChessApp app) {
         this.app = app;
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
+    }
+
+    public void incoming(String data) {
+        Packet.Type packetType = Packet.getType(data);
+        if (packetType == null) return;
+
+        switch (packetType) {
+            case ASSIGNMENT:
+                switch (getDevicePeerType()) {
+                    case SERVER:
+                        getDevicePeer().send(new AssignmentPacket(getColour().opposite()));
+                        break;
+                    case CLIENT:
+                        AssignmentPacket assignmentPacket = AssignmentPacket.parse(data);
+                        colour = assignmentPacket.getColour();
+                        break;
+                }
+                break;
+            case BOARD:
+                switch (getDevicePeerType()) {
+                    case SERVER:
+                        getDevicePeer().send(new BoardPacket(getBoard()));
+                        break;
+                    case CLIENT:
+                        BoardPacket boardPacket = BoardPacket.parse(data);
+                        if (board == null) board = new Board();
+                        getBoard().getPieces().clear();
+                        getBoard().getPieces().addAll(boardPacket.getPieces());
+                        break;
+                }
+                break;
+            case MOVE:
+                MovePacket movePacket = MovePacket.parse(data);
+                Piece piece = getBoard().byPosition(movePacket.getFrom());
+                if (piece == null || !piece.getType().equals(movePacket.getPieceType()) || piece.getColour().equals(getColour())) {
+                    if (getDevicePeerType().equals(DevicePeer.Type.SERVER))
+                        getDevicePeer().send(new BoardPacket(getBoard()));
+                    break;
+                }
+                getBoard().moveTo(piece, movePacket.getTo());
+                break;
+            case PROMOTE:
+                PromotionPacket promotionPacket = PromotionPacket.parse(data);
+                Piece toPromote = getBoard().byPosition(promotionPacket.getPosition());
+                if (toPromote == null || !toPromote.getType().equals(Piece.Type.PAWN) || toPromote.getColour().equals(getColour())) break;
+                getBoard().promote(toPromote, promotionPacket.getPromoteTo());
+                break;
+        }
+    }
+
+    public void moveTo(Piece piece, Position position) {
+        if (getDevicePeer() != null)
+            getDevicePeer().send(new MovePacket(piece.getType(), piece.getPosition(), position));
+
+        getBoard().moveTo(piece, position);
     }
 
     @Override
@@ -55,8 +102,32 @@ public class GameScreen implements Screen, InputProcessor {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
-        if (instance.getBot() != null) instance.getBot().think(instance.getBoard());
-        instance.render(app);
+        float width = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.8f, height = width;
+        float x = -width / 2f;
+        float y = -height / 2f;
+
+        if (hasGameStarted())
+            getBoard().render(app, x, y, width, height);
+
+        Piece piece = getBoard().getPromoting();
+        if (piece != null && piece.getColour().equals(getColour())) {
+            float cell = width / 8;
+            x += (piece.getPosition().getX() - 1) * cell;
+            y += (piece.getPosition().getY() - 1) * cell;
+            app.batch.setColor(getColour().getColor());
+            app.batch.draw(app.textures.white, x, y - cell * 3f, cell, cell * 4);
+
+            Piece.Type[] types = {Piece.Type.QUEEN, Piece.Type.KNIGHT, Piece.Type.ROOK, Piece.Type.BISHOP};
+            for (Piece.Type type : types) {
+                if (Mouse.containsMouse(x, y, cell, cell) || type.equals(promotion)) {
+                    promotion = type;
+                    app.batch.setColor(Color.WHITE);
+                    app.batch.draw(app.textures.navy, x, y, cell, cell);
+                }
+                Piece.render(app, x, y, cell, type, type.equals(promotion) ? getColour().getColor() : Color.NAVY);
+                y -= cell;
+            }
+        }
     }
 
     @Override
@@ -67,12 +138,10 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void pause() {
-        // Invoked when your application is paused.
     }
 
     @Override
     public void resume() {
-        // Invoked when your application is resumed after pause.
     }
 
     @Override
@@ -83,8 +152,40 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public void dispose() {
-        if (instance.getServer() != null) instance.getServer().dispose();
-        if (instance.getClient() != null) instance.getClient().dispose();
+    }
+
+    public boolean hasGameStarted() {
+        return true;
+    }
+
+    public boolean canMove(Piece piece) {
+        if (piece == null) return false;
+        if (!piece.getColour().equals(getColour())) return false;
+        if (piece.isOnCooldown()) return false;
+
+        if (getBoard().isChecked(getColour()) && getBoard().getPossibleMoves(piece).isEmpty()) return false;
+
+        return true;
+    }
+
+    public DevicePeer getDevicePeer() {
+        return null;
+    }
+
+    public DevicePeer.Type getDevicePeerType() {
+        return getDevicePeer() != null ? getDevicePeer().getType() : DevicePeer.Type.OFFLINE;
+    }
+
+    public Piece.Colour getColour() {
+        return colour;
+    }
+
+    public Board getBoard() {
+        return board != null ? board : new Board();
+    }
+
+    public Piece.Type getPromotion() {
+        return promotion;
     }
 
     @Override
@@ -109,21 +210,19 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
-        if (instance.hasGameStarted()) {
-            if (instance.getBoard().getPromoting() != null && instance.getBoard().getPromoting().getColour().equals(instance.getColour())) {
-                if (instance.getDevicePeer() != null)
-                    instance.getDevicePeer().send(new PromotionPacket(instance.getBoard().getPromoting().getPosition(), instance.getPromotion()));
-                instance.getBoard().promote(instance.getBoard().getPromoting(), instance.getPromotion());
+        if (hasGameStarted()) {
+            if (getBoard().getPromoting() != null && getBoard().getPromoting().getColour().equals(getColour())) {
+                if (getDevicePeer() != null)
+                    getDevicePeer().send(new PromotionPacket(getBoard().getPromoting().getPosition(), getPromotion()));
+                getBoard().promote(getBoard().getPromoting(), getPromotion());
                 return false;
             }
 
-            if (instance.getBoard().getHovering() != null) {
-                Piece piece = instance.getBoard().byPosition(instance.getBoard().getHovering());
-                if (piece != null && (piece.getColour().equals(instance.getColour()) || (instance.getBot() != null && instance.getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS)))) {
-                    if (piece.isOnCooldown()) return false;
-                    if (instance.getBoard().isChecked(instance.getColour()) && instance.getBoard().getPossibleMoves(piece).isEmpty()) return false;
-                    instance.getBoard().select(piece);
-                    instance.getBoard().setHolding(true);
+            if (getBoard().getHovering() != null) {
+                Piece piece = getBoard().byPosition(getBoard().getHovering());
+                if (canMove(piece)) {
+                    getBoard().select(piece);
+                    getBoard().setHolding(true);
                 }
             }
         }
@@ -132,12 +231,12 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchUp(int i, int i1, int i2, int i3) {
-        if (instance.getBoard().isHolding()) {
-            Piece piece = instance.getBoard().getSelected();
-            Position position = instance.getBoard().getHovering();
-            instance.moveTo(piece, position);
+        if (getBoard().isHolding()) {
+            Piece piece = getBoard().getSelected();
+            Position position = getBoard().getHovering();
+            moveTo(piece, position);
         }
-        instance.getBoard().setHolding(false);
+        getBoard().setHolding(false);
         return false;
     }
 
