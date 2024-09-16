@@ -38,7 +38,7 @@ public class Notation {
 
         if (notation.startsWith("B") || notation.startsWith("W")) return;
 
-        if (notation.length() == 3) {
+        if (isPromotion()) {
             this.type = Piece.Type.byNotation(notation.substring(2, 3));
             this.from = Position.byNotation(notation.substring(0, 2));
             this.to = Position.byNotation(notation.substring(0, 2));
