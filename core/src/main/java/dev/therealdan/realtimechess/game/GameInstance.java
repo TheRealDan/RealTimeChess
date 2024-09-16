@@ -22,28 +22,23 @@ public class GameInstance {
 
     private Piece.Type promotion = Piece.Type.QUEEN;
 
-    public GameInstance(Bot.Difficulty difficulty, ServerSocket server, Socket client, Piece.Colour colour) {
+    public GameInstance(Bot.Difficulty difficulty, ServerSocket server, Socket client, Piece.Colour preference) {
         board = Board.standardBoard();
-        if (difficulty != null) bot = new Bot(difficulty, colour.opposite());
+        if (difficulty != null) bot = new Bot(difficulty, preference.opposite());
         this.server = server;
         this.client = client;
-        this.colour = colour;
+        this.colour = getClient() != null ? null : preference;
 
         if (getServer() != null) {
             serverConnectToClient();
         } else if (getClient() != null) {
-            clientConnectToServer();
+            clientConnectToServer(preference);
         }
     }
 
     private void serverConnectToClient() {
         new Thread(() -> {
             connected = getServer().accept(new SocketHints());
-            try {
-                connected.getOutputStream().write((getColour().opposite().toString() + "\n").getBytes());
-            } catch (IOException e) {
-                Gdx.app.log("Server", "Error", e);
-            }
             while (true) {
                 try {
                     String incoming = new BufferedReader(new InputStreamReader(connected.getInputStream())).readLine();
@@ -56,7 +51,7 @@ public class GameInstance {
         }).start();
     }
 
-    private void clientConnectToServer() {
+    private void clientConnectToServer(Piece.Colour preference) {
         new Thread(() -> {
             while (true) {
                 try {
@@ -68,10 +63,33 @@ public class GameInstance {
                 }
             }
         }).start();
+        new Thread(() -> {
+            long checkInterval = 200;
+            long lastCheck = System.currentTimeMillis() - checkInterval;
+            while (getColour() == null) {
+                if (System.currentTimeMillis() - lastCheck < checkInterval) continue;
+                lastCheck = System.currentTimeMillis();
+                try {
+                    getClient().getOutputStream().write((new Notation(preference).getNotation() + "\n").getBytes());
+                } catch (IOException e) {
+                    Gdx.app.log("Client", "Error", e);
+                }
+            }
+        }).start();
     }
 
     private void incoming(Notation notation) {
-        if (notation.isBoard()) {
+        if (notation.isAssignment()) {
+            if (getServer() != null && getConnected() != null) {
+                try {
+                    getConnected().getOutputStream().write((new Notation(getColour().opposite()).getNotation() + "\n").getBytes());
+                } catch (IOException e) {
+                    Gdx.app.log("Server", "Error", e);
+                }
+            } else if (getClient() != null) {
+                colour = notation.getColour();
+            }
+        } else if (notation.isBoard()) {
             getBoard().getPieces().clear();
             for (String string : notation.getNotation().split(",")) {
                 getBoard().getPieces().add(new Piece(

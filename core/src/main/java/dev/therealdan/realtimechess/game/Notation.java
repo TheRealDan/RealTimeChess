@@ -4,7 +4,14 @@ public class Notation {
 
     private String notation;
     private Piece.Type type;
+    private Piece.Colour colour;
     private Position from, to;
+
+    public Notation(Piece.Colour colour) {
+        this.notation = colour.getNotation();
+
+        this.colour = colour;
+    }
 
     public Notation(Piece piece, Position position) {
         this.notation = piece.getType().getNotation() + piece.getPosition().getNotation() + position.getNotation();
@@ -36,9 +43,9 @@ public class Notation {
     public Notation(String notation) {
         this.notation = notation;
 
-        if (notation.startsWith("B") || notation.startsWith("W")) return;
-
-        if (isPromotion()) {
+        if (isAssignment()) {
+            this.colour = Piece.Colour.byNotation(notation);
+        } else if (isPromotion()) {
             this.type = Piece.Type.byNotation(notation.substring(2, 3));
             this.from = Position.byNotation(notation.substring(0, 2));
             this.to = Position.byNotation(notation.substring(0, 2));
@@ -61,12 +68,20 @@ public class Notation {
         return getNotation().length() == 5;
     }
 
+    public boolean isAssignment() {
+        return getNotation().startsWith("B") || getNotation().startsWith("W");
+    }
+
     public String getNotation() {
         return notation;
     }
 
     public Piece.Type getType() {
         return type;
+    }
+
+    public Piece.Colour getColour() {
+        return colour;
     }
 
     public Position getFrom() {

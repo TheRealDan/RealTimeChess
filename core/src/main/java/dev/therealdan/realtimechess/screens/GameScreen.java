@@ -13,9 +13,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import dev.therealdan.realtimechess.game.*;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class GameScreen implements Screen, InputProcessor {
 
@@ -39,19 +37,10 @@ public class GameScreen implements Screen, InputProcessor {
         instance = new GameInstance(null, server, null, colour);
     }
 
-    public GameScreen(RealTimeChessApp app, String host, int port) {
+    public GameScreen(RealTimeChessApp app, String host, int port, Piece.Colour preference) {
         this(app);
         Socket client = Gdx.net.newClientSocket(Net.Protocol.TCP, host, port, new SocketHints());
-        Piece.Colour colour;
-        try {
-            String incoming = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
-            colour = Piece.Colour.valueOf(incoming);
-        } catch (IOException e) {
-            Gdx.app.log("Client", "Error", e);
-            return;
-        }
-        ;
-        instance = new GameInstance(null, null, client, colour);
+        instance = new GameInstance(null, null, client, preference);
     }
 
     public GameScreen(RealTimeChessApp app) {

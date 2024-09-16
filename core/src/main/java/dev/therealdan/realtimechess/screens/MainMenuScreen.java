@@ -280,7 +280,7 @@ public class MainMenuScreen implements Screen, InputProcessor {
                     editHost = true;
                     return false;
                 case JOIN_START:
-                    app.setScreen(new GameScreen(app, app.settings.getString(Settings.Setting.IP_ADDRESS), (int) app.settings.getNumber(Settings.Setting.PORT)));
+                    app.setScreen(new GameScreen(app, app.settings.getString(Settings.Setting.IP_ADDRESS), (int) app.settings.getNumber(Settings.Setting.PORT), app.settings.getToggle(Settings.Setting.PREFERENCE) ? Piece.Colour.WHITE : Piece.Colour.BLACK));
                     return false;
                 case PREVIOUS:
                     previous();
