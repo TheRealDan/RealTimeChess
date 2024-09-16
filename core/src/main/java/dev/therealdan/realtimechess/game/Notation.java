@@ -42,7 +42,7 @@ public class Notation {
             this.type = Piece.Type.byNotation(notation.substring(2, 3));
             this.from = Position.byNotation(notation.substring(0, 2));
             this.to = Position.byNotation(notation.substring(0, 2));
-        } else {
+        } else if (isMove()) {
             this.type = Piece.Type.byNotation(notation.substring(0, 1));
             this.from = Position.byNotation(notation.substring(1, 3));
             this.to = Position.byNotation(notation.substring(3, 5));
@@ -55,6 +55,10 @@ public class Notation {
 
     public boolean isPromotion() {
         return getNotation().length() == 3;
+    }
+
+    public boolean isMove() {
+        return getNotation().length() == 5;
     }
 
     public String getNotation() {
