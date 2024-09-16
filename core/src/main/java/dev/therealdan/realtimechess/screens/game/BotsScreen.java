@@ -31,8 +31,11 @@ public class BotsScreen extends GameScreen {
 
     @Override
     public boolean canMove(Piece piece) {
-        if (getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS))
-            return super.canMove(new Piece(piece.getType(), getColour(), piece.getPosition()));
+        if (getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS)) {
+            piece = piece.copy();
+            piece.setColour(getColour());
+            return super.canMove(piece);
+        }
         return super.canMove(piece);
     }
 }

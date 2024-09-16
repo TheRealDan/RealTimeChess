@@ -19,11 +19,15 @@ public class Piece {
     private long lastMove;
 
     public Piece(Type type, Colour colour, Position position) {
+        this(type, colour, position, 0);
+        resetCooldown();
+    }
+
+    public Piece(Type type, Colour colour, Position position, long lastMove) {
         this.type = type;
         this.colour = colour;
         this.position = position;
-
-        resetCooldown();
+        this.lastMove = lastMove;
     }
 
     public static void render(RealTimeChessApp app, float x, float y, float size, Type type, Color color) {
@@ -54,6 +58,10 @@ public class Piece {
 
     public void resetCooldown() {
         lastMove = System.currentTimeMillis() - getCooldown();
+    }
+
+    public void setColour(Colour colour) {
+        this.colour = colour;
     }
 
     public boolean isStartPosition() {
@@ -97,7 +105,7 @@ public class Piece {
     }
 
     public Piece copy() {
-        return new Piece(type, colour, position.copy());
+        return new Piece(type, colour, position.copy(), lastMove);
     }
 
     public enum Type {
