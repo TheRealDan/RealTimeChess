@@ -122,7 +122,9 @@ public class GameInstance {
         float width = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.8f, height = width;
         float x = -width / 2f;
         float y = -height / 2f;
-        getBoard().render(app, x, y, width, height);
+
+        if (hasGameStarted())
+            getBoard().render(app, x, y, width, height);
 
         Piece piece = getBoard().getPromoting();
         if (piece != null && piece.getColour().equals(getColour())) {
@@ -157,6 +159,13 @@ public class GameInstance {
                 }
             }
         }
+    }
+
+    public boolean hasGameStarted() {
+        if (getBot() != null) return true;
+        if (getServer() != null) return getConnected() != null;
+        if (getClient() != null) return getClient().isConnected() && getColour() != null;
+        return false;
     }
 
     public Board getBoard() {
