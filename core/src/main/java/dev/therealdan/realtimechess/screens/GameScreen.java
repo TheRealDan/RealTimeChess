@@ -2,18 +2,17 @@ package dev.therealdan.realtimechess.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.net.ServerSocket;
-import com.badlogic.gdx.net.ServerSocketHints;
-import com.badlogic.gdx.net.Socket;
-import com.badlogic.gdx.net.SocketHints;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import dev.therealdan.realtimechess.game.*;
+import dev.therealdan.realtimechess.game.Bot;
+import dev.therealdan.realtimechess.game.GameInstance;
+import dev.therealdan.realtimechess.game.Piece;
+import dev.therealdan.realtimechess.game.Position;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
-
-import java.io.IOException;
+import dev.therealdan.realtimechess.network.Client;
+import dev.therealdan.realtimechess.network.Server;
+import dev.therealdan.realtimechess.network.packets.PromotionPacket;
 
 public class GameScreen implements Screen, InputProcessor {
 
@@ -31,16 +30,12 @@ public class GameScreen implements Screen, InputProcessor {
 
     public GameScreen(RealTimeChessApp app, int port, Piece.Colour colour) {
         this(app);
-        ServerSocketHints hints = new ServerSocketHints();
-        hints.acceptTimeout = 0;
-        ServerSocket server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, hints);
-        instance = new GameInstance(null, server, null, colour);
+        instance = new GameInstance(null, new Server(port), null, colour);
     }
 
     public GameScreen(RealTimeChessApp app, String host, int port, Piece.Colour preference) {
         this(app);
-        Socket client = Gdx.net.newClientSocket(Net.Protocol.TCP, host, port, new SocketHints());
-        instance = new GameInstance(null, null, client, preference);
+        instance = new GameInstance(null, null, new Client(host, port), preference);
     }
 
     public GameScreen(RealTimeChessApp app) {
@@ -90,7 +85,6 @@ public class GameScreen implements Screen, InputProcessor {
     public void dispose() {
         if (instance.getServer() != null) instance.getServer().dispose();
         if (instance.getClient() != null) instance.getClient().dispose();
-        if (instance.getConnected() != null) instance.getConnected().dispose();
     }
 
     @Override
@@ -117,16 +111,9 @@ public class GameScreen implements Screen, InputProcessor {
     public boolean touchDown(int i, int i1, int i2, int i3) {
         if (instance.hasGameStarted()) {
             if (instance.getBoard().getPromoting() != null && instance.getBoard().getPromoting().getColour().equals(instance.getColour())) {
-                Notation notation = new Notation(instance.getBoard().getPromoting(), instance.getPromotion());
+                if (instance.getDevicePeer() != null)
+                    instance.getDevicePeer().send(new PromotionPacket(instance.getBoard().getPromoting().getPosition(), instance.getPromotion()));
                 instance.getBoard().promote(instance.getBoard().getPromoting(), instance.getPromotion());
-                if (instance.getClient() != null || instance.getConnected() != null) {
-                    Socket socket = instance.getClient() != null ? instance.getClient() : instance.getConnected();
-                    try {
-                        socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
-                    } catch (IOException e) {
-                        Gdx.app.log(instance.getClient() != null ? "Client" : "Server", "Error", e);
-                    }
-                }
                 return false;
             }
 

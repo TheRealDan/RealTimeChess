@@ -323,6 +323,17 @@ public class Board {
         return pieces;
     }
 
+    public String getNotation() {
+        StringBuilder builder = new StringBuilder();
+        for (Piece piece : getPieces()) {
+            builder.append(",");
+            builder.append(piece.getColour().getNotation());
+            builder.append(piece.getType().getNotation());
+            builder.append(piece.getPosition().getNotation());
+        }
+        return builder.toString().replaceFirst(",", "");
+    }
+
     public Board copy() {
         Board board = new Board();
         for (Piece piece : getPieces())

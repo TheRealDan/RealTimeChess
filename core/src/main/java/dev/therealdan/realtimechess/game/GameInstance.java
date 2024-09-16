@@ -2,11 +2,16 @@ package dev.therealdan.realtimechess.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.net.ServerSocket;
-import com.badlogic.gdx.net.Socket;
-import com.badlogic.gdx.net.SocketHints;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
+import dev.therealdan.realtimechess.network.Client;
+import dev.therealdan.realtimechess.network.DevicePeer;
+import dev.therealdan.realtimechess.network.Packet;
+import dev.therealdan.realtimechess.network.Server;
+import dev.therealdan.realtimechess.network.packets.AssignmentPacket;
+import dev.therealdan.realtimechess.network.packets.BoardPacket;
+import dev.therealdan.realtimechess.network.packets.MovePacket;
+import dev.therealdan.realtimechess.network.packets.PromotionPacket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,13 +21,13 @@ public class GameInstance {
 
     private Board board;
     private Bot bot;
-    private ServerSocket server;
-    private Socket client, connected;
+    private Server server;
+    private Client client;
     private Piece.Colour colour;
 
     private Piece.Type promotion = Piece.Type.QUEEN;
 
-    public GameInstance(Bot.Difficulty difficulty, ServerSocket server, Socket client, Piece.Colour preference) {
+    public GameInstance(Bot.Difficulty difficulty, Server server, Client client, Piece.Colour preference) {
         board = Board.standardBoard();
         if (difficulty != null) bot = new Bot(difficulty, preference.opposite());
         this.server = server;
@@ -38,12 +43,10 @@ public class GameInstance {
 
     private void serverConnectToClient() {
         new Thread(() -> {
-            connected = getServer().accept(new SocketHints());
+            getServer().accept();
             while (true) {
                 try {
-                    String incoming = new BufferedReader(new InputStreamReader(connected.getInputStream())).readLine();
-                    if (incoming != null)
-                        incoming(new Notation(incoming));
+                    incoming(new BufferedReader(new InputStreamReader(getServer().getSocket().getInputStream())).readLine());
                 } catch (IOException e) {
                     Gdx.app.log("Server", "Error", e);
                 }
@@ -55,9 +58,7 @@ public class GameInstance {
         new Thread(() -> {
             while (true) {
                 try {
-                    String incoming = new BufferedReader(new InputStreamReader(client.getInputStream())).readLine();
-                    if (incoming != null)
-                        incoming(new Notation(incoming));
+                    incoming(new BufferedReader(new InputStreamReader(getClient().getInputStream())).readLine());
                 } catch (IOException e) {
                     Gdx.app.log("Client", "Error", e);
                 }
@@ -69,52 +70,49 @@ public class GameInstance {
             while (getColour() == null) {
                 if (System.currentTimeMillis() - lastCheck < checkInterval) continue;
                 lastCheck = System.currentTimeMillis();
-                try {
-                    getClient().getOutputStream().write((new Notation(preference).getNotation() + "\n").getBytes());
-                } catch (IOException e) {
-                    Gdx.app.log("Client", "Error", e);
-                }
+                getDevicePeer().send(new AssignmentPacket(preference));
             }
         }).start();
     }
 
-    private void incoming(Notation notation) {
-        if (notation.isAssignment()) {
-            if (getServer() != null && getConnected() != null) {
-                try {
-                    getConnected().getOutputStream().write((new Notation(getColour().opposite()).getNotation() + "\n").getBytes());
-                } catch (IOException e) {
-                    Gdx.app.log("Server", "Error", e);
-                }
-            } else if (getClient() != null) {
-                colour = notation.getColour();
-            }
-        } else if (notation.isBoard()) {
-            getBoard().getPieces().clear();
-            for (String string : notation.getNotation().split(",")) {
-                getBoard().getPieces().add(new Piece(
-                    Piece.Type.byNotation(string.substring(1, 2)),
-                    Piece.Colour.byNotation(string.substring(0, 1)),
-                    Position.byNotation(string.substring(2, 4))
-                ));
-            }
-        } else if (notation.isPromotion()) {
-            Piece piece = getBoard().byPosition(notation.getFrom());
-            if (piece == null || !piece.getType().equals(Piece.Type.PAWN) || piece.getColour().equals(getColour())) return;
-            getBoard().promote(piece, notation.getType());
-        } else if (notation.isMove()) {
-            Piece piece = getBoard().byPosition(notation.getFrom());
-            if (piece == null || !piece.getType().equals(notation.getType()) || piece.getColour().equals(getColour())) {
+    private void incoming(String data) {
+        Packet.Type packetType = Packet.getType(data);
+        if (packetType == null) return;
+
+        switch (packetType) {
+            case ASSIGNMENT:
                 if (getServer() != null) {
-                    try {
-                        getConnected().getOutputStream().write((new Notation(getBoard()).getNotation() + "\n").getBytes());
-                    } catch (IOException e) {
-                        Gdx.app.log("Server", "Error", e);
-                    }
+                    getServer().send(new AssignmentPacket(getColour().opposite()));
+                } else if (getClient() != null) {
+                    AssignmentPacket assignmentPacket = AssignmentPacket.parse(data);
+                    colour = assignmentPacket.getColour();
                 }
-                return;
-            }
-            getBoard().moveTo(piece, notation.getTo());
+                break;
+            case BOARD:
+                if (getServer() != null) {
+                    getServer().send(new BoardPacket(getBoard()));
+                } else if (getClient() != null) {
+                    BoardPacket boardPacket = BoardPacket.parse(data);
+                    getBoard().getPieces().clear();
+                    getBoard().getPieces().addAll(boardPacket.getPieces());
+                }
+                break;
+            case MOVE:
+                MovePacket movePacket = MovePacket.parse(data);
+                Piece piece = getBoard().byPosition(movePacket.getFrom());
+                if (piece == null || !piece.getType().equals(movePacket.getPieceType()) || piece.getColour().equals(getColour())) {
+                    if (getServer() != null)
+                        getServer().send(new BoardPacket(getBoard()));
+                    break;
+                }
+                getBoard().moveTo(piece, movePacket.getTo());
+                break;
+            case PROMOTE:
+                PromotionPacket promotionPacket = PromotionPacket.parse(data);
+                Piece toPromote = getBoard().byPosition(promotionPacket.getPosition());
+                if (toPromote == null || !toPromote.getType().equals(Piece.Type.PAWN) || toPromote.getColour().equals(getColour())) break;
+                getBoard().promote(toPromote, promotionPacket.getPromoteTo());
+                break;
         }
     }
 
@@ -148,22 +146,16 @@ public class GameInstance {
     }
 
     public void moveTo(Piece piece, Position position) {
-        Notation notation = new Notation(piece, position);
         if (getBoard().moveTo(piece, position)) {
-            if (getClient() != null || getConnected() != null) {
-                Socket socket = getClient() != null ? getClient() : getConnected();
-                try {
-                    socket.getOutputStream().write((notation.getNotation() + "\n").getBytes());
-                } catch (IOException e) {
-                    Gdx.app.log(getClient() != null ? "Client" : "Server", "Error", e);
-                }
+            if (getDevicePeer() != null) {
+                getDevicePeer().send(new MovePacket(piece.getType(), piece.getPosition(), position.copy()));
             }
         }
     }
 
     public boolean hasGameStarted() {
         if (getBot() != null) return true;
-        if (getServer() != null) return getConnected() != null;
+        if (getServer() != null) return getServer().getSocket() != null;
         if (getClient() != null) return getClient().isConnected() && getColour() != null;
         return false;
     }
@@ -176,16 +168,16 @@ public class GameInstance {
         return bot;
     }
 
-    public ServerSocket getServer() {
+    public DevicePeer getDevicePeer() {
+        return getClient() != null ? getClient() : getServer();
+    }
+
+    public Server getServer() {
         return server;
     }
 
-    public Socket getClient() {
+    public Client getClient() {
         return client;
-    }
-
-    public Socket getConnected() {
-        return connected;
     }
 
     public Piece.Colour getColour() {
