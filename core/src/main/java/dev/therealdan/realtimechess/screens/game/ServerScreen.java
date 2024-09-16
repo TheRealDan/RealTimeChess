@@ -34,7 +34,7 @@ public class ServerScreen extends GameScreen {
                 try {
                     incoming(new BufferedReader(new InputStreamReader(getServer().getSocket().getInputStream())).readLine());
                 } catch (IOException e) {
-                    Gdx.app.log("Server", "Error", e);
+                    Gdx.app.log(getDevicePeer().getName(), "Error", e);
                 }
             }
         }).start();
