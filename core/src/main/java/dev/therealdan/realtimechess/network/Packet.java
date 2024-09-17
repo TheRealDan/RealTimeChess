@@ -36,6 +36,7 @@ public abstract class Packet {
     }
 
     public enum Type {
+        USERNAME,
         ASSIGNMENT, BOARD, MOVE, PROMOTE;
 
         public String getKey() {

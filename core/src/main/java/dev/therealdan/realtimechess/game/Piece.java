@@ -131,7 +131,8 @@ public class Piece {
     }
 
     public enum Colour {
-        BLACK, WHITE;
+        BLACK, WHITE,
+        NONE;
 
         public Colour opposite() {
             return equals(BLACK) ? WHITE : BLACK;

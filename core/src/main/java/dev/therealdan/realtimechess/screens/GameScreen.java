@@ -10,10 +10,9 @@ import dev.therealdan.realtimechess.main.RealTimeChessApp;
 import dev.therealdan.realtimechess.main.Settings;
 import dev.therealdan.realtimechess.network.DevicePeer;
 import dev.therealdan.realtimechess.network.Packet;
-import dev.therealdan.realtimechess.network.packets.AssignmentPacket;
-import dev.therealdan.realtimechess.network.packets.BoardPacket;
-import dev.therealdan.realtimechess.network.packets.MovePacket;
-import dev.therealdan.realtimechess.network.packets.PromotionPacket;
+import dev.therealdan.realtimechess.network.packets.*;
+import dev.therealdan.realtimechess.screens.game.ClientScreen;
+import dev.therealdan.realtimechess.screens.game.ServerScreen;
 
 public abstract class GameScreen extends AScreen {
 
@@ -70,6 +69,21 @@ public abstract class GameScreen extends AScreen {
                 Piece toPromote = getBoard().byPosition(promotionPacket.getPosition());
                 if (toPromote == null || !toPromote.getType().equals(Piece.Type.PAWN) || toPromote.getColour().equals(getColour())) break;
                 getBoard().promote(toPromote, promotionPacket.getPromoteTo());
+                break;
+            case USERNAME:
+                UsernamePacket usernamePacket = UsernamePacket.parse(data);
+                if (usernamePacket.isAsking()) {
+                    getDevicePeer().send(new UsernamePacket(app.settings.getString(Settings.Setting.USERNAME)));
+                } else {
+                    switch (getDevicePeerType()) {
+                        case SERVER:
+                            ((ServerScreen) this).setOpponent(usernamePacket.getUsername());
+                            break;
+                        case CLIENT:
+                            ((ClientScreen) this).setOpponent(usernamePacket.getUsername());
+                            break;
+                    }
+                }
                 break;
         }
     }
@@ -155,7 +169,7 @@ public abstract class GameScreen extends AScreen {
     }
 
     public Piece.Colour getColour() {
-        return colour;
+        return colour != null ? colour : Piece.Colour.NONE;
     }
 
     public Board getBoard() {

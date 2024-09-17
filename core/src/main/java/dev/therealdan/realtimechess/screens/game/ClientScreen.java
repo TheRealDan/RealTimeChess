@@ -9,6 +9,7 @@ import dev.therealdan.realtimechess.network.Client;
 import dev.therealdan.realtimechess.network.DevicePeer;
 import dev.therealdan.realtimechess.network.packets.AssignmentPacket;
 import dev.therealdan.realtimechess.network.packets.BoardPacket;
+import dev.therealdan.realtimechess.network.packets.UsernamePacket;
 import dev.therealdan.realtimechess.screens.GameScreen;
 
 import java.io.BufferedReader;
@@ -18,6 +19,7 @@ import java.io.InputStreamReader;
 public class ClientScreen extends GameScreen {
 
     private Client client;
+    private String opponent;
 
     public ClientScreen(RealTimeChessApp app) {
         super(app);
@@ -41,13 +43,18 @@ public class ClientScreen extends GameScreen {
         new Thread(() -> {
             long checkInterval = 200;
             long lastCheck = System.currentTimeMillis() - checkInterval;
-            while (getColour() == null || board == null) {
+            while (colour == null || board == null || opponent == null) {
                 if (System.currentTimeMillis() - lastCheck < checkInterval) continue;
                 lastCheck = System.currentTimeMillis();
                 getDevicePeer().send(new AssignmentPacket(preference));
                 getDevicePeer().send(new BoardPacket(new Board()));
+                getDevicePeer().send(new UsernamePacket("?"));
             }
         }).start();
+    }
+
+    public void setOpponent(String opponent) {
+        this.opponent = opponent;
     }
 
     @Override
@@ -57,6 +64,11 @@ public class ClientScreen extends GameScreen {
 
     public Client getClient() {
         return client;
+    }
+
+    @Override
+    public String getOpponentName() {
+        return opponent != null ? opponent : "";
     }
 
     @Override
