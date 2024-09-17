@@ -7,6 +7,7 @@ import dev.therealdan.realtimechess.game.Piece;
 import dev.therealdan.realtimechess.game.Position;
 import dev.therealdan.realtimechess.main.Mouse;
 import dev.therealdan.realtimechess.main.RealTimeChessApp;
+import dev.therealdan.realtimechess.main.Settings;
 import dev.therealdan.realtimechess.network.DevicePeer;
 import dev.therealdan.realtimechess.network.Packet;
 import dev.therealdan.realtimechess.network.packets.AssignmentPacket;
@@ -86,12 +87,25 @@ public abstract class GameScreen extends AScreen {
         app.shapeRenderer.setProjectionMatrix(camera.combined);
         app.batch.setProjectionMatrix(camera.combined);
 
-        float width = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.8f, height = width;
-        float x = -width / 2f;
-        float y = -height / 2f;
+        float spacing = Gdx.graphics.getHeight() * 0.1f;
+        float owidth = Math.min(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) - (spacing * 2f), width = owidth, height = owidth;
+        float ox = -width / 2f, x = ox;
+        float oy = -height / 2f, y = oy;
 
-        if (hasGameStarted())
-            getBoard().render(app, x, y, width, height);
+        width = ((Gdx.graphics.getWidth() - owidth) / 2f) - (spacing * 2f);
+        x -= width + spacing;
+        y += spacing + app.font.getHeight(app.batch, app.settings.getString(Settings.Setting.USERNAME), (int) (16f * app.font.scale));
+        app.font.draw(app.batch, getColour().equals(Piece.Colour.WHITE) ? app.settings.getString(Settings.Setting.USERNAME) : getOpponentName(), x, y, (int) (16f * app.font.scale), Color.WHITE);
+        x += width + spacing * 2f + owidth;
+        y = oy + height - spacing;
+        app.font.draw(app.batch, getColour().equals(Piece.Colour.BLACK) ? app.settings.getString(Settings.Setting.USERNAME) : getOpponentName(), x, y, (int) (16f * app.font.scale), Color.WHITE);
+        width = owidth;
+        x = ox;
+        y = oy;
+
+        if (!hasGameStarted()) return;
+
+        getBoard().render(app, x, y, width, height);
 
         Piece piece = getBoard().getPromoting();
         if (piece != null && piece.getColour().equals(getColour())) {
@@ -112,6 +126,10 @@ public abstract class GameScreen extends AScreen {
                 y -= cell;
             }
         }
+    }
+
+    public String getOpponentName() {
+        return "";
     }
 
     public boolean hasGameStarted() {

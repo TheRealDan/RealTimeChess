@@ -30,6 +30,11 @@ public class BotsScreen extends GameScreen {
     }
 
     @Override
+    public String getOpponentName() {
+        return getBot().getDifficulty().getName();
+    }
+
+    @Override
     public boolean canMove(Piece piece) {
         if (piece == null) return false;
         if (getBot().getDifficulty().equals(Bot.Difficulty.BRAINLESS)) {
