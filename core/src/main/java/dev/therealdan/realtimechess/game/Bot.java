@@ -75,7 +75,7 @@ public class Bot {
     }
 
     private boolean doAttackMove(Board board) {
-        for (Piece piece : getRandomOrder(board, getColour())) {
+        for (Piece piece : getPieces(board, getColour())) {
             for (Position move : getPossibleMoves(board, piece)) {
                 if (board.byPosition(move) != null) {
                     board.moveTo(piece, move);
@@ -88,7 +88,7 @@ public class Bot {
     }
 
     private boolean doAnyMove(Board board) {
-        for (Piece piece : getRandomOrder(board, getColour())) {
+        for (Piece piece : getPieces(board, getColour())) {
             for (Position move : getPossibleMoves(board, piece)) {
                 board.moveTo(piece, move);
                 lastMove = System.currentTimeMillis();
@@ -104,7 +104,7 @@ public class Bot {
         return moves;
     }
 
-    private List<Piece> getRandomOrder(Board board, Piece.Colour colour) {
+    private List<Piece> getPieces(Board board, Piece.Colour colour) {
         List<Piece> pieces = new ArrayList<>(board.getPieces().stream().filter(piece -> piece.getColour().equals(colour) && !piece.isOnCooldown()).collect(Collectors.toList()));
         Collections.shuffle(pieces);
         return pieces;
