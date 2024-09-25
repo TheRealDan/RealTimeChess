@@ -150,7 +150,7 @@ public class Bot {
                 default:
                     return "No one actually knows anything about this particular bot.";
                 case BRAINLESS:
-                    return "Unlike other advanced bots, brainless has no brains, meaning it does not posses any intelligence or ability to make decisions. It serves as a great learning tool for beginners to real time chess as it will never actually move any chess pieces. Literally brainless.";
+                    return "Unlike other advanced bots, brainless has no brains, meaning it does not posses any intelligence or ability to make decisions.\n\nIt serves as a great learning tool for beginners to real time chess as it will never actually move any chess pieces. Literally brainless.";
             }
         }
     }
