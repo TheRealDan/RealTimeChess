@@ -151,6 +151,18 @@ public class Bot {
                     return "No one actually knows anything about this particular bot.";
                 case BRAINLESS:
                     return "Unlike other advanced bots, brainless has no brains, meaning it does not posses any intelligence or ability to make decisions.\n\nIt serves as a great learning tool for beginners to real time chess as it will never actually move any chess pieces. Literally brainless.";
+                case LEMONS:
+                    return "The easy AI chess bot that looks like a lemon!\n\nDon't let its appearance fool you, because underneath that bright yellow peel lies a very dim-witted artificial intelligence.";
+                case SLOW:
+                    return "While many chess bots may boast about their quick decision-making abilities, Slow takes a different approach.\n\nSlow is not the fastest thinker on the chessboard and instead takes its time before making a decision.\n\nSlow originally wanted to be called \"Turtle\" but unfortunately missed the application deadline.";
+                case CAUTIOUS:
+                    return "Like a sharp-witted detective, Cautious carefully assesses every move and considers all possible outcomes before making a strategic decision.\n\nIt is not one to rush into battle without a plan, but instead, carefully plots its moves to outsmart its opponent.";
+                case TACTFUL:
+                    return "Meet Tactful, the AI chess bot that strikes the perfect balance between strategic thinking and tactical execution.\n\nLike a true commander, Tactful is always one step ahead, constantly assessing the board and anticipating your moves.";
+                case RECKLESS:
+                    return "While most chess bots prioritize strategic and calculated moves, Reckless thrives on spontaneity and thrills in making lightning-fast decisions.\n\nReckless may seem like an unlikely opponent, but don't let its cute and cunning exterior fool you. This AI is driven by a relentless desire to play the game in a way that is both chaotic and efficient.";
+                case IMPOSSIBLE:
+                    return "Introducing Impossible: the ultimate chess playing AI designed to dominate the board and outsmart even the most skilled human players.\n\nSuperior processing power and lightning-fast decision-making skills give it an edge over its human counterparts. Prepare to face the ultimate challenge and test your skills against this truly unbeatable AI.\n\nWill you be able to outsmart the impossible?";
             }
         }
     }
